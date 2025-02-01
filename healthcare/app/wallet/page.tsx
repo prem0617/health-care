@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import axios from "axios";
 
 // Types
 interface Transaction {
@@ -70,12 +71,13 @@ const WalletPage = () => {
 
   const fetchTransactions = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/transaction", {
+      const response = await fetch("http://localhost:8000/api/transactions", {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
       const data = await response.json();
+      console.log(data);
       setTransactions(data.transactions);
     } catch (error) {
       showNotification("error", "Failed to fetch transactions");

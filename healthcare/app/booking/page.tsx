@@ -19,7 +19,7 @@ const DoctorsPage = () => {
   const [doctorData, setDoctorData] = useState<Doctor[]>([]);
   const [filteredDoctors, setFilteredDoctors] = useState<Doctor[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [specialization, setSpecialization] = useState("");
+  const [specialization, setSpecialization] = useState("All"); // Default to "All"
   const [currentPage, setCurrentPage] = useState(1);
   const doctorsPerPage = 9;
 
@@ -42,7 +42,7 @@ const DoctorsPage = () => {
     const filtered = doctorData.filter(
       (doctor) =>
         doctor.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        (specialization === "" || doctor.specialization === specialization)
+        (specialization === "All" || doctor.specialization === specialization)
     );
     setFilteredDoctors(filtered);
     setCurrentPage(1);
@@ -119,9 +119,9 @@ const DoctorsPage = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="All">All Specializations</SelectItem>
-                <SelectItem value="Cardiology">Cardiology</SelectItem>
-                <SelectItem value="Dermatology">Dermatology</SelectItem>
-                <SelectItem value="Neurology">Neurology</SelectItem>
+                <SelectItem value="cardiology">Cardiology</SelectItem>
+                <SelectItem value="dermatology">Dermatology</SelectItem>
+                <SelectItem value="neurology">Neurology</SelectItem>
                 {/* Add more specializations as needed */}
               </SelectContent>
             </Select>

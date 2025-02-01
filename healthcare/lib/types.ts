@@ -12,3 +12,24 @@ export interface Doctor {
   password: string;
   specialization: string;
 }
+
+export interface BookedSlot {
+  date: string;
+  startTime: string;
+}
+
+export interface Appointment {
+  date: string;
+  startTime: string;
+  patientName: string;
+  isFirstConsultation: boolean;
+}
+
+export interface Doctor {
+  name: string;
+  specialization: string;
+  consultationFee: {
+    amount: number;
+    currency: string;
+  };
+}

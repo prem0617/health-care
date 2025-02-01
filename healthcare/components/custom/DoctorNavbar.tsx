@@ -1,21 +1,16 @@
-"use client";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { MessageCircle, LogIn, Menu, X, User2Icon } from "lucide-react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation"; // Using usePathname from next/navigation
+import { usePathname, useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 
-// Define type for user state
 interface User {
   email: string;
 }
-
-// Simulated auth state (replace with actual auth logic)
 
 interface NavItemProps {
   href: string;
@@ -33,36 +28,53 @@ const NavItem: React.FC<NavItemProps> = ({ href, children }) => (
   </motion.div>
 );
 
-export default function Navbar() {
+export default function DoctorNavbar() {
   const router = useRouter();
-  const token = localStorage.getItem("token");
-  let decodedToken;
-  if (token) {
-    decodedToken = jwtDecode(token);
-    console.log(decodedToken);
-  }
-
-  const user: User | null = decodedToken ? (decodedToken as User) : null;
+  const [user, setUser] = useState<User | null>(null); // Use state for user data
   const [isOpen, setIsOpen] = useState(false);
-  const pathname = usePathname(); // Using usePathname to get current pathname
+  const pathname = usePathname();
 
-  // Check if we are on the /auth or /doctor/auth page
-  const isAuthPage = pathname === "/auth" || pathname === "/doctor/auth";
+  // State to track if we are on an auth page
+  const [isAuthPage, setIsAuthPage] = useState(false);
 
-  // Return null to hide the navbar when on /auth or /doctor/auth page
-  if (isAuthPage) return null;
+  // Effect hook for detecting the auth page after the first render
+  useEffect(() => {
+    if (pathname === "/auth" || pathname === "/doctor/auth") {
+      setIsAuthPage(true);
+    } else {
+      setIsAuthPage(false);
+    }
+  }, [pathname]);
+
+  // Check the token once when the component mounts
+  useEffect(() => {
+    if (!isAuthPage) {
+      const token = localStorage.getItem("doctorToken");
+      if (token) {
+        const decodedToken = jwtDecode(token);
+        console.log(decodedToken);
+        setUser(decodedToken as User); // Update user state
+      }
+    }
+  }, [isAuthPage]); // Re-run the effect only if isAuthPage changes
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    setIsOpen(false);
+    localStorage.removeItem("doctorToken"); // Correct token key
+    setUser(null); // Reset user state
     router.push("/");
   };
 
+  // Only render the navbar if it's not an auth page
+  if (isAuthPage) return null;
+
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
-          <Link href="/" className="flex items-center space-x-2">
+          <Link
+            href="/doctor/dashboard"
+            className="flex items-center space-x-2"
+          >
             <motion.div
               initial={{ rotate: 0 }}
               animate={{ rotate: 360 }}
@@ -81,10 +93,8 @@ export default function Navbar() {
           </Link>
 
           <div className="hidden md:flex items-center space-x-6">
-            {localStorage.getItem("token") ? (
+            {user ? (
               <>
-                <NavItem href="/wallet">Wallet</NavItem>
-                <NavItem href="/tracker">Health Tracker</NavItem>
                 <NavItem href="/chat">
                   <MessageCircle className="h-6 w-6" />
                 </NavItem>
@@ -144,10 +154,8 @@ export default function Navbar() {
             className="md:hidden bg-white shadow-lg"
           >
             <div className="container mx-auto px-4 py-4 space-y-4">
-              {localStorage.getItem("token") ? (
+              {user ? (
                 <>
-                  <NavItem href="/wallet">Wallet</NavItem>
-                  <NavItem href="/tracker">Health Tracker</NavItem>
                   <div className="flex items-center space-x-2">
                     <Avatar className="h-10 w-10 bg-blue-500 text-white">
                       <AvatarFallback className="bg-blue-700">
