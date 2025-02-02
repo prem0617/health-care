@@ -353,7 +353,7 @@ export default function DoctorAuth() {
                       name="chatFee.amount"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Chat Fee (INT)</FormLabel>
+                          <FormLabel>Chat Fee (INR)</FormLabel>
                           <FormControl>
                             <Input
                               type="number"

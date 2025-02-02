@@ -1,5 +1,3 @@
-// components/Sidebar.tsx
-
 import Link from "next/link";
 import { User, Activity, Users, FileText } from "lucide-react";
 
@@ -18,6 +16,12 @@ const Sidebar = () => {
           className="block py-3 px-6 text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-colors"
         >
           Transaction
+        </Link>
+        <Link
+          href="/doctor/chatVerification"
+          className="block py-3 px-6 text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+        >
+          Chat Verification
         </Link>
       </nav>
     </div>

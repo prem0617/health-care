@@ -1,13 +1,24 @@
 "use client";
-
-import { useEffect, useState } from "react";
-import { jwtDecode } from "jwt-decode";
+import type React from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Clock, User, Activity, Users, FileText } from "lucide-react";
-import type { Appointment, BookedSlot } from "@/lib/types";
+import { jwtDecode } from "jwt-decode";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar, User, Video, FileSignature, Edit } from "lucide-react";
+import type { Appointment } from "@/lib/types";
 import DoctorLayout from "@/components/custom/DoctorLayout";
-// import DoctorLayout from "@/components/DoctorLayout"; // Import the layout
+
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
 interface DecodedToken {
   email?: string;
@@ -15,10 +26,29 @@ interface DecodedToken {
   name?: string;
 }
 
-const DoctorDashboard = () => {
-  const [bookedSlots, setBookedSlots] = useState<BookedSlot[]>([]);
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
+interface Medication {
+  name: string;
+  dosage: string;
+  frequency: string;
+  duration: string;
+}
+
+const DoctorDashboard: React.FC = () => {
+  const [upcomingAppointments, setUpcomingAppointments] = useState<
+    Appointment[]
+  >([]);
+  const [previousAppointments, setPreviousAppointments] = useState<
+    Appointment[]
+  >([]);
+  const [selectedAppointment, setSelectedAppointment] =
+    useState<Appointment | null>(null);
+  const [zoomLink, setZoomLink] = useState<string>("");
+  const [diagnosis, setDiagnosis] = useState<string>("");
+  const [medications, setMedications] = useState<Medication[]>([]);
   const [doctorName, setDoctorName] = useState<string>("");
+  const [isZoomDialogOpen, setIsZoomDialogOpen] = useState<boolean>(false);
+  const [isPrescriptionDialogOpen, setIsPrescriptionDialogOpen] =
+    useState<boolean>(false);
 
   useEffect(() => {
     const token = localStorage.getItem("doctorToken");
@@ -29,137 +59,314 @@ const DoctorDashboard = () => {
     }
   }, []);
 
-  const fetchAppointments = async (userId: string) => {
+  const fetchAppointments = async (doctorId: string) => {
     try {
+      const token = localStorage.getItem("doctorToken");
+      if (!token) return;
+
       const response = await axios.get(
-        `http://localhost:8000/api/appointments/doctor/${userId}`
+        `${BACKEND_URL}/api/appointments/doctor/${doctorId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
-      const appointmentsData = response.data.data?.appointments || [];
-      setBookedSlots(
-        appointmentsData.map((appointment: any) => ({
-          date: appointment.date.split("T")[0],
-          startTime: appointment.slot.startTime,
-        }))
-      );
-      setAppointments(
-        appointmentsData.map((appointment: any) => ({
-          date: appointment.date,
-          startTime: appointment.slot.startTime,
-          patientName: `${appointment.patientId.profile.firstName} ${appointment.patientId.profile.lastName}`,
-          isFirstConsultation: appointment.isFirstConsultation,
-        }))
-      );
+      if (response.data) {
+        const { upcomingAppointments, previousAppointments } =
+          response.data.data;
+        setUpcomingAppointments(upcomingAppointments);
+        setPreviousAppointments(previousAppointments);
+      } else {
+        setUpcomingAppointments([]);
+        setPreviousAppointments([]);
+      }
     } catch (error) {
       console.error("Error fetching appointments:", error);
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+  const handleAddOrUpdateZoomLink = async () => {
+    if (!selectedAppointment) return;
+    try {
+      await axios.post(
+        `${BACKEND_URL}/api/appointments/${selectedAppointment._id}/zoom-link`,
+        { zoomLink },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("doctorToken")}`,
+          },
+        }
+      );
+      setUpcomingAppointments(
+        upcomingAppointments.map((app) =>
+          app._id === selectedAppointment._id ? { ...app, zoomLink } : app
+        )
+      );
+      setSelectedAppointment(null);
+      setZoomLink("");
+      setIsZoomDialogOpen(false);
+    } catch (error) {
+      console.error("Error adding/updating Zoom link:", error);
+    }
   };
+
+  const handleCreatePrescription = async () => {
+    if (!selectedAppointment) return;
+    try {
+      const token = localStorage.getItem("doctorToken");
+      if (!token) return;
+
+      const decodedToken: DecodedToken = jwtDecode(token);
+      console.log(medications);
+      await axios.post(
+        `${BACKEND_URL}/api/prescription`,
+        {
+          diagnosis,
+          medications: medications,
+          appointmentId: selectedAppointment._id,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("doctorToken")}`,
+          },
+        }
+      );
+
+      setPreviousAppointments(
+        previousAppointments.map((app) =>
+          app._id === selectedAppointment._id
+            ? { ...app, hasPrescription: true }
+            : app
+        )
+      );
+
+      setSelectedAppointment(null);
+      setDiagnosis("");
+      setMedications([]);
+      setIsPrescriptionDialogOpen(false);
+    } catch (error) {
+      console.error("Error creating prescription:", error);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const options: Intl.DateTimeFormatOptions = {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    };
+    return new Date(dateString).toLocaleString("en-US", options);
+  };
+
+  const openZoomDialog = (appointment: Appointment) => {
+    setSelectedAppointment(appointment);
+    setZoomLink(appointment.zoomLink || "");
+    setIsZoomDialogOpen(true);
+  };
+
+  const openPrescriptionDialog = (appointment: Appointment) => {
+    setSelectedAppointment(appointment);
+    setDiagnosis("");
+    setMedications([]);
+    setIsPrescriptionDialogOpen(true);
+  };
+
+  const renderAppointmentCard = (
+    appointment: Appointment,
+    isUpcoming: boolean
+  ) => (
+    <Card
+      key={appointment._id}
+      className="hover:shadow-lg transition-shadow duration-300 ease-in-out bg-white"
+    >
+      <CardContent className="p-6">
+        <div className="flex items-start justify-between">
+          <div className="space-y-3">
+            <div className="flex items-center space-x-3">
+              <Calendar className="w-5 h-5 text-blue-500" />
+              <span className="text-gray-700 font-medium">
+                {formatDate(appointment.date)}
+              </span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <User className="w-5 h-5 text-purple-500" />
+              <span className="text-gray-600">
+                {appointment.patientId.profile.firstName +
+                  " " +
+                  appointment.patientId.profile.lastName}
+              </span>
+            </div>
+          </div>
+          <div className="flex flex-col space-y-2">
+            {isUpcoming && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => openZoomDialog(appointment)}
+              >
+                {appointment.zoomLink ? (
+                  <>
+                    <Edit className="w-4 h-4 mr-2" />
+                    Update Zoom Link
+                  </>
+                ) : (
+                  <>
+                    <Video className="w-4 h-4 mr-2" />
+                    Add Zoom Link
+                  </>
+                )}
+              </Button>
+            )}
+            {!isUpcoming && !appointment.hasPrescription && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => openPrescriptionDialog(appointment)}
+              >
+                <FileSignature className="w-4 h-4 mr-2" />
+                Add Prescription
+              </Button>
+            )}
+          </div>
+        </div>
+        {appointment.isFirstConsultation && (
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 mt-2">
+            First Visit
+          </span>
+        )}
+      </CardContent>
+    </Card>
+  );
 
   return (
     <DoctorLayout>
-      <div className="p-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6">
+      <div className="p-8 bg-gray-50 min-h-screen">
+        <h1 className="text-4xl font-bold text-gray-800 mb-8">
           Welcome back, Dr. {doctorName}!
         </h1>
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Appointments
-              </CardTitle>
-              <Activity className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{appointments.length}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                New Patients
-              </CardTitle>
-              <Users className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {appointments.filter((app) => app.isFirstConsultation).length}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Upcoming Today
-              </CardTitle>
-              <FileText className="h-4 w-4 text-purple-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {
-                  appointments.filter(
-                    (app) =>
-                      new Date(app.date).toDateString() ===
-                      new Date().toDateString()
-                  ).length
-                }
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Appointments List */}
+        {/* Upcoming Appointments */}
         <h2 className="text-2xl font-semibold text-gray-800 mb-4">
           Upcoming Appointments
         </h2>
-        <div className="space-y-4">
-          {appointments.map((appointment, index) => (
-            <Card
-              key={index}
-              className="hover:shadow-lg transition-shadow duration-300 ease-in-out"
-            >
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-3">
-                    <div className="flex items-center space-x-3">
-                      <Calendar className="w-5 h-5 text-blue-500" />
-                      <span className="text-gray-700 font-medium">
-                        {formatDate(appointment.date)}
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <Clock className="w-5 h-5 text-green-500" />
-                      <span className="text-gray-600">
-                        {appointment.startTime}
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <User className="w-5 h-5 text-purple-500" />
-                      <span className="text-gray-600">
-                        {appointment.patientName}
-                      </span>
-                    </div>
-                  </div>
-                  {appointment.isFirstConsultation && (
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                      First Visit
-                    </span>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+        <div className="grid gap-4 mb-8 md:grid-cols-2 lg:grid-cols-3">
+          {upcomingAppointments.map((appointment) =>
+            renderAppointmentCard(appointment, true)
+          )}
+        </div>
+
+        {/* Previous Appointments */}
+        <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+          Previous Appointments
+        </h2>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {previousAppointments.map((appointment) =>
+            renderAppointmentCard(appointment, false)
+          )}
         </div>
       </div>
+
+      {/* Zoom Link Dialog */}
+      <Dialog open={isZoomDialogOpen} onOpenChange={setIsZoomDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {selectedAppointment?.zoomLink
+                ? "Update Zoom Link"
+                : "Add Zoom Link"}
+            </DialogTitle>
+          </DialogHeader>
+          <Input
+            placeholder="Enter Zoom link"
+            value={zoomLink}
+            onChange={(e) => setZoomLink(e.target.value)}
+          />
+          <Button onClick={handleAddOrUpdateZoomLink}>
+            {selectedAppointment?.zoomLink ? "Update" : "Save"}
+          </Button>
+        </DialogContent>
+      </Dialog>
+
+      {/* Prescription Dialog */}
+      <Dialog
+        open={isPrescriptionDialogOpen}
+        onOpenChange={setIsPrescriptionDialogOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create Prescription</DialogTitle>
+          </DialogHeader>
+          <Textarea
+            placeholder="Enter diagnosis"
+            value={diagnosis}
+            onChange={(e) => setDiagnosis(e.target.value)}
+            rows={3}
+          />
+          {medications.map((med, index) => (
+            <div key={index} className="space-y-2">
+              <Input
+                placeholder="Medicine name"
+                value={med.name}
+                onChange={(e) =>
+                  setMedications(
+                    medications.map((m, i) =>
+                      i === index ? { ...m, name: e.target.value } : m
+                    )
+                  )
+                }
+              />
+              <Input
+                placeholder="Dosage"
+                value={med.dosage}
+                onChange={(e) =>
+                  setMedications(
+                    medications.map((m, i) =>
+                      i === index ? { ...m, dosage: e.target.value } : m
+                    )
+                  )
+                }
+              />
+              <Input
+                placeholder="Frequency"
+                value={med.frequency}
+                onChange={(e) =>
+                  setMedications(
+                    medications.map((m, i) =>
+                      i === index ? { ...m, frequency: e.target.value } : m
+                    )
+                  )
+                }
+              />
+              <Input
+                placeholder="Duration"
+                value={med.duration}
+                onChange={(e) =>
+                  setMedications(
+                    medications.map((m, i) =>
+                      i === index ? { ...m, duration: e.target.value } : m
+                    )
+                  )
+                }
+              />
+            </div>
+          ))}
+          <Button
+            onClick={() =>
+              setMedications([
+                ...medications,
+                { name: "", dosage: "", frequency: "", duration: "" },
+              ])
+            }
+          >
+            Add Medication
+          </Button>
+          <Button onClick={handleCreatePrescription}>Send Prescription</Button>
+        </DialogContent>
+      </Dialog>
     </DoctorLayout>
   );
 };

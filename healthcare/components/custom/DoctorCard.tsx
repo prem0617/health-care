@@ -42,7 +42,7 @@ export default function DoctorCard({ doctor }: DoctorCardProps) {
           </div>
 
           <div className="space-y-4 mb-6">
-            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg transition-colors">
+            {/* <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg transition-colors">
               <div className="flex items-center gap-2">
                 <ChatIcon />
                 <span className="text-gray-700">Chat Fee</span>
@@ -50,7 +50,7 @@ export default function DoctorCard({ doctor }: DoctorCardProps) {
               <span className="font-semibold text-gray-900">
                 ₹{chatAmount.toLocaleString()}
               </span>
-            </div>
+            </div> */}
 
             <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg transition-colors">
               <div className="flex items-center gap-2">
@@ -63,23 +63,23 @@ export default function DoctorCard({ doctor }: DoctorCardProps) {
             </div>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex gap-3 justify-center">
             <Link href={`/appointment/${doctor._id}`}>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg transition-all duration-300 hover:from-blue-600 hover:to-blue-700"
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg transition-all duration-300 hover:from-blue-600 hover:to-blue-700 "
               >
                 Book Consultation
               </motion.button>
             </Link>
-            <motion.button
+            {/* <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg transition-all duration-300 hover:from-purple-600 hover:to-purple-700"
             >
               Chat Now
-            </motion.button>
+            </motion.button> */}
           </div>
         </div>
 

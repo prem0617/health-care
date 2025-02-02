@@ -28,7 +28,7 @@ export default function HeroSection() {
   };
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <div className="relative  w-full overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       {/* Animated background elements */}
       <div className="absolute inset-0 z-0">
         <div className="absolute top-1/4 left-1/4 h-64 w-64 rounded-full bg-blue-300 mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>

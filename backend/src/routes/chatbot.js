@@ -1,6 +1,8 @@
 const express = require("express");
 const { OpenAI } = require("openai");
 const dotenv = require("dotenv");
+const mongoose = require("mongoose");
+const MedicalChat = require("../models/MedicalChat"); // Import the schema
 
 dotenv.config();
 
@@ -12,7 +14,11 @@ const openai = new OpenAI({
 
 router.post("/diagnose", async (req, res) => {
   try {
-    const { question } = req.body;
+    const { userId, question } = req.body;
+
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: "Invalid or missing user ID." });
+    }
 
     if (
       !question ||
@@ -21,7 +27,7 @@ router.post("/diagnose", async (req, res) => {
     ) {
       return res.status(400).json({
         error:
-          "Please provide a detailed description of your condition (minimum 10 characters)",
+          "Please provide a detailed description of your condition (minimum 10 characters).",
       });
     }
 
@@ -58,6 +64,22 @@ router.post("/diagnose", async (req, res) => {
     const response =
       completion.choices[0]?.message?.content || "No response generated";
 
+    // Save question and response in the database
+    let medicalChat = await MedicalChat.findOne({ userId });
+
+    if (!medicalChat) {
+      medicalChat = new MedicalChat({ userId, questions: [] });
+    }
+
+    medicalChat.questions.push({
+      question,
+      aiResponse: {
+        analysis: response,
+      },
+    });
+
+    await medicalChat.save();
+
     // Send response
     res.status(200).json({
       analysis: response,
@@ -69,6 +91,36 @@ router.post("/diagnose", async (req, res) => {
     console.error("Error:", error);
     res.status(500).json({
       error: "Error processing request",
+      message: error.message,
+    });
+  }
+});
+
+router.get("/chats/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: "Invalid user ID format." });
+    }
+
+    // Fetch user's chat history
+    const userChats = await MedicalChat.findOne({ userId });
+
+    if (!userChats) {
+      return res
+        .status(404)
+        .json({ message: "No chat history found for this user." });
+    }
+
+    res.status(200).json({
+      userId,
+      chatHistory: userChats.questions, // Send all questions and answers
+    });
+  } catch (error) {
+    console.error("Error fetching chat history:", error);
+    res.status(500).json({
+      error: "Internal Server Error",
       message: error.message,
     });
   }

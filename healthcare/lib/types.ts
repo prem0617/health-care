@@ -19,10 +19,21 @@ export interface BookedSlot {
 }
 
 export interface Appointment {
+  _id: string;
   date: string;
   startTime: string;
   patientName: string;
   isFirstConsultation: boolean;
+  status: "scheduled" | "completed" | "cancelled";
+  zoomLink?: string;
+  hasPrescription?: boolean;
+}
+
+export interface Prescription {
+  diagnosis: string;
+  medications: string;
+  physicalActivities: string;
+  notes: string;
 }
 
 export interface Doctor {

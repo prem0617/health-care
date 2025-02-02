@@ -24,13 +24,16 @@ const appointmentRoutes = require("./routes/appointments");
 const transactionRoutes = require("./routes/transactions");
 const DoctorRoutes = require("./routes/doctor");
 const chatbotRoutes = require("./routes/chatbot");
-
+const verifyChat = require("./routes/verifyChat");
+const prescriptionRoutes = require("./routes/prescription");
 // Use routes
 app.use("/api/auth", authRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/transactions", transactionRoutes);
 app.use("/api/doctor", DoctorRoutes);
 app.use("/api/chatbot", chatbotRoutes);
+app.use("/api/verifyChat", verifyChat);
+app.use("/api/prescription", prescriptionRoutes);
 
 // Basic error handling
 app.use((err, req, res, next) => {

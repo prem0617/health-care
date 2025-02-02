@@ -1,19 +1,19 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
-const Doctor = require('../models/Doctor')
-const authMiddleware = require('./middleware/authMiddleware');
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const User = require("../models/User");
+const Doctor = require("../models/Doctor");
+const authMiddleware = require("./middleware/authMiddleware");
 
-router.post('/register', async (req, res) => {
+router.post("/register", async (req, res) => {
   try {
     const { email, password, profile, walletBalance } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: 'Email already registered' });
+      return res.status(400).json({ message: "Email already registered" });
     }
 
     // Create new user
@@ -23,7 +23,7 @@ router.post('/register', async (req, res) => {
       profile: {
         firstName: profile.firstName,
         lastName: profile.lastName,
-        dateOfBirth: new Date(profile.dateOfBirth),  // Convert string to Date
+        dateOfBirth: new Date(profile.dateOfBirth), // Convert string to Date
         phone: profile.mobile,
       },
       wallet: {
@@ -35,74 +35,74 @@ router.post('/register', async (req, res) => {
 
     // Generate JWT token
     const token = jwt.sign(
-      { userId: user._id , email : user.email , dob : user.dateOfBirth },
+      { userId: user._id, email: user.email, dob: user.dateOfBirth },
       process.env.JWT_SECRET,
-      { expiresIn: '24h' }
+      { expiresIn: "24h" }
     );
 
     res.status(201).json({
-      message: 'Registration successful',
-      token
+      message: "Registration successful",
+      token,
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    console.error("Registration error:", error);
     res.status(500).json({
-      message: 'Error registering user',
+      message: "Error registering user",
       error: error.message,
     });
   }
 });
 
-router.post('/login', async (req, res) => {
+router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
     // Check if user exists
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
     // Verify password
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
     // Generate JWT token
     const token = jwt.sign(
-      { userId: user._id , email : user.email , dob : user.dateOfBirth },
+      { userId: user._id, email: user.email, dob: user.dateOfBirth },
       process.env.JWT_SECRET,
-      { expiresIn: '24h' }
+      { expiresIn: "24h" }
     );
 
     // Send response
     res.json({
-      message: 'Login successful',
-      token
+      message: "Login successful",
+      token,
     });
   } catch (error) {
-    console.error('Login error:', error);
+    console.error("Login error:", error);
     res.status(500).json({
-      message: 'Error during login',
+      message: "Error during login",
       error: error.message,
     });
   }
 });
 
-router.get('/getUser', async (req, res) => {
+router.get("/getUser", async (req, res) => {
   try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
+    const token = req.header("Authorization")?.replace("Bearer ", "");
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.userId);
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
 
     res.status(200).json({
-      message: 'User details fetched successfully',
-      token: req.header('Authorization'), // Include the token in response if required
+      message: "User details fetched successfully",
+      token: req.header("Authorization"), // Include the token in response if required
       user: {
         id: user._id,
         email: user.email,
@@ -112,53 +112,53 @@ router.get('/getUser', async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error fetching user:', error);
+    console.error("Error fetching user:", error);
     res.status(500).json({
-      message: 'Error fetching user details',
+      message: "Error fetching user details",
       error: error.message,
     });
   }
 });
 
-router.post('/updateWallet', authMiddleware, async (req, res) => {
+router.post("/updateWallet", authMiddleware, async (req, res) => {
   try {
-      const { amount, pin } = req.body;
-      console.log('Received request:', { amount, pin }); // Debug log
+    const { amount, pin } = req.body;
+    console.log("Received request:", { amount, pin }); // Debug log
 
-      // Validation
-      if (!amount || !pin) {
-          return res.status(400).json({ message: 'Amount and PIN are required' });
-      }
+    // Validation
+    if (!amount || !pin) {
+      return res.status(400).json({ message: "Amount and PIN are required" });
+    }
 
-      // Find user
-      const user = await User.findById(req.user.userId);
-      if (!user) {
-          return res.status(404).json({ message: 'User not found' });
-      }
+    // Find user
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-      // Update wallet balance
-      user.wallet.balance += Number(amount);
-      await user.save();
-      
-      res.json({
-          success: true,
-          message: 'Wallet updated successfully',
-          newBalance: user.wallet.balance
-      });
+    // Update wallet balance
+    user.wallet.balance += Number(amount);
+    await user.save();
 
+    res.json({
+      success: true,
+      message: "Wallet updated successfully",
+      newBalance: user.wallet.balance,
+    });
   } catch (error) {
-      console.error('Update user error:', error);
-      res.status(500).json({ message: 'Server error', error: error.message });
+    console.error("Update user error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 });
 
-router.post('/doctor/register', async (req, res) => {
+router.post("/doctor/register", async (req, res) => {
   try {
-    const { email, password, name, specialization, consultationFee ,  chatFee } = req.body;
+    const { email, password, name, specialization, consultationFee, chatFee } =
+      req.body;
 
     const existingDoctor = await Doctor.findOne({ email });
     if (existingDoctor) {
-      return res.status(400).json({ message: 'Email already registered' });
+      return res.status(400).json({ message: "Email already registered" });
     }
 
     const doctor = new Doctor({
@@ -167,59 +167,61 @@ router.post('/doctor/register', async (req, res) => {
       name,
       specialization,
       consultationFee,
-      chatFee
+      chatFee,
     });
 
     await doctor.save();
 
     const token = jwt.sign(
-      { doctorId: doctor._id },
+      { doctorId: doctor._id, email: doctor.email },
       process.env.JWT_SECRET,
-      { expiresIn: '24h' }
+      {
+        expiresIn: "24h",
+      }
     );
 
     res.status(201).json({
-      message: 'Registration successful',
+      message: "Registration successful",
       token,
     });
   } catch (error) {
-    console.error('Doctor registration error:', error);
+    console.error("Doctor registration error:", error);
     res.status(500).json({
-      message: 'Error registering doctor',
-      error: error.message
+      message: "Error registering doctor",
+      error: error.message,
     });
   }
 });
 
-router.post('/doctor/login', async (req, res) => {
+router.post("/doctor/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
     const doctor = await Doctor.findOne({ email });
     if (!doctor) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
     const isValidPassword = await bcrypt.compare(password, doctor.password);
     if (!isValidPassword) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
     const token = jwt.sign(
-      { doctorId: doctor._id },
+      { doctorId: doctor._id, email: doctor.email },
       process.env.JWT_SECRET,
-      { expiresIn: '24h' }
+      { expiresIn: "24h" }
     );
 
     res.json({
-      message: 'Login successful',
-      token
+      message: "Login successful",
+      token,
     });
   } catch (error) {
-    console.error('Doctor login error:', error);
+    console.error("Doctor login error:", error);
     res.status(500).json({
-      message: 'Error during login',
-      error: error.message
+      message: "Error during login",
+      error: error.message,
     });
   }
 });

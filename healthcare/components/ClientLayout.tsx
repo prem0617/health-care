@@ -28,7 +28,7 @@ export default function ClientLayout({
   }, [searchParams]);
 
   return (
-    <div className="relative h-screen overflow-hidden">
+    <div className="relative ">
       <motion.div
         animate={{
           scale: isChatOpen ? 0.95 : 1,

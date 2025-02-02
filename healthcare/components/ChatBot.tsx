@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Send, X } from "lucide-react";
+import { Send, X, Check } from "lucide-react"; // Import the Check icon
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 
 interface Message {
   text: string;
   isUser: boolean;
+  isChecked?: boolean; // Add isChecked to the Message interface
 }
 
 interface ChatbotProps {
@@ -21,6 +23,18 @@ export const Chatbot: React.FC<ChatbotProps> = ({
   isDarkMode,
   initialMessage = "Hi there! How can I help you today?",
 }) => {
+  const token = localStorage.getItem("token");
+  let decodedToken: any;
+  if (token) {
+    decodedToken = jwtDecode(token);
+    console.log("Decoded token:", decodedToken);
+  }
+
+  let userId: any;
+  if (decodedToken && decodedToken.userId) {
+    userId = decodedToken.userId;
+  }
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -35,21 +49,76 @@ export const Chatbot: React.FC<ChatbotProps> = ({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const fetchOldMessages = async () => {
+    try {
+      if (!userId) return;
+
+      const response = await axios.get(
+        `http://localhost:8000/api/chatbot/chats/${userId}`
+      );
+      console.log("Fetched chat history:", response.data);
+
+      // Access the chatHistory array inside the response.data object
+      const chatHistory = response.data.chatHistory;
+
+      // Ensure chatHistory is an array
+      if (Array.isArray(chatHistory)) {
+        const formattedMessages = chatHistory
+          .map((chat: any) => {
+            // Check if the necessary properties exist in chat object
+            if (chat.question && chat.aiResponse?.analysis) {
+              return [
+                {
+                  text: chat.question,
+                  isUser: true,
+                  isChecked: chat.isChecked, // Add isChecked for user messages
+                },
+                {
+                  text: chat.aiResponse.analysis,
+                  isUser: false,
+                  isChecked: chat.isChecked, // Add isChecked for AI responses
+                },
+              ];
+            } else {
+              console.warn("Invalid chat data:", chat);
+              return []; // Return an empty array if data is invalid
+            }
+          })
+          .flat(); // Flatten the array to merge user & AI messages properly
+
+        console.log("Formatted messages:", formattedMessages);
+        setMessages(formattedMessages);
+      } else {
+        console.error("chatHistory is not an array:", chatHistory);
+      }
+    } catch (error) {
+      console.error("Error fetching chat history:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (userId) {
+      fetchOldMessages();
+    }
+  }, [userId]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (inputValue.trim()) {
-      const newMessages = [...messages, { text: inputValue, isUser: true }];
+      const newMessages = [
+        ...messages,
+        { text: inputValue, isUser: true, isChecked: false }, // New user messages are unchecked by default
+      ];
       setMessages([
         ...newMessages,
-        { text: "Gyani is thinking...", isUser: false },
+        { text: "Gyani is thinking...", isUser: false, isChecked: false },
       ]);
       setInputValue("");
 
       try {
-        console.log(inputValue + " has been ");
         const response = await axios.post(
           `http://localhost:8000/api/chatbot/diagnose`,
-          { question: inputValue }
+          { question: inputValue, userId: decodedToken.userId }
         );
 
         if (response.status !== 200) {
@@ -57,13 +126,20 @@ export const Chatbot: React.FC<ChatbotProps> = ({
         }
 
         const botMessage = response.data.analysis;
-        console.log(botMessage);
-        setMessages([...newMessages, { text: botMessage, isUser: false }]);
+        console.log("Bot response:", botMessage);
+        setMessages([
+          ...newMessages,
+          { text: botMessage, isUser: false, isChecked: false }, // New AI responses are unchecked by default
+        ]);
       } catch (error) {
         console.error("Error fetching response:", error);
         setMessages([
           ...newMessages,
-          { text: "Sorry, something went wrong.", isUser: false },
+          {
+            text: "Sorry, something went wrong.",
+            isUser: false,
+            isChecked: false,
+          },
         ]);
       } finally {
         setMessages((prevMessages) =>
@@ -104,7 +180,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({
           animate={{ x: 0 }}
           exit={{ x: "100%" }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className={`fixed inset-y-0 right-0 w-full md:w-[500px] shadow-2xl ${
+          className={`fixed inset-y-0 right-0 w-full md:w-screen shadow-2xl ${
             isDarkMode ? "bg-gray-900 text-gray-100" : "bg-white text-gray-900"
           }`}
           style={{
@@ -139,7 +215,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({
                   }`}
                 >
                   <div
-                    className={`max-w-[75%] p-3 rounded-lg ${
+                    className={`max-w-[75%] p-3 rounded-lg relative ${
                       message.isUser
                         ? isDarkMode
                           ? "bg-purple-600 text-white"
@@ -152,6 +228,15 @@ export const Chatbot: React.FC<ChatbotProps> = ({
                     <div className="whitespace-pre-wrap font-sans">
                       {formatMessage(message.text)}
                     </div>
+                    {message.isChecked && ( // Show checkmark if isChecked is true
+                      <div
+                        className={`absolute -top-2 -right-2 p-1 rounded-full ${
+                          isDarkMode ? "bg-green-600" : "bg-green-500"
+                        }`}
+                      >
+                        <Check className="w-4 h-4 text-white" />
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               ))}
