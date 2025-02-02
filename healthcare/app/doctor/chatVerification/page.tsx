@@ -100,11 +100,12 @@ const DoctorDashboard = () => {
     }
   };
 
-  const handleUpdateAnswer = async (
-    chatId: string,
-    questionId: string,
-    updatedAnswer: string
-  ) => {
+  const handleUpdateAnswer = async (chatId: string, questionId: string) => {
+    if (!updatedAnswer) {
+      alert("Please provide an updated answer.");
+      return;
+    }
+
     try {
       const token = localStorage.getItem("doctorToken");
       const response = await axios.put(
@@ -139,8 +140,13 @@ const DoctorDashboard = () => {
             : chat
         )
       );
+
+      // Clear the editing state
+      setEditingQuestion(null);
+      setUpdatedAnswer("");
     } catch (error) {
       console.error("Error updating answer:", error);
+      alert("Error updating the answer. Please try again.");
     }
   };
 

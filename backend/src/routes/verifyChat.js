@@ -62,41 +62,33 @@ const ChatHistory = require("../models/ChatHistory"); // Assuming you have this 
 
 router.put("/update-answer/:chatId/:questionId", async (req, res) => {
   const { chatId, questionId } = req.params;
-  const { answer } = req.body; // The new answer (analysis) to update
+  const { answer } = req.body;
 
   try {
-    // Validate the chatId and questionId are valid ObjectIds
-    if (!mongoose.Types.ObjectId.isValid(chatId)) {
-      return res.status(400).json({ message: "Invalid chatId" });
-    }
-    if (!mongoose.Types.ObjectId.isValid(questionId)) {
-      return res.status(400).json({ message: "Invalid questionId" });
-    }
-
-    // Find the chat by chatId
     const chat = await MedicalChat.findById(chatId);
     if (!chat) {
       return res.status(404).json({ message: "Chat not found" });
     }
 
-    // Find the specific question by questionId in the questions array
     const question = chat.questions.id(questionId);
     if (!question) {
       return res.status(404).json({ message: "Question not found" });
     }
 
-    // Update the answer (aiResponse.analysis)
-    question.aiResponse.analysis = answer;
+    // Ensure answer is provided for the update
+    if (!answer) {
+      return res.status(400).json({ message: "Answer is required" });
+    }
 
-    // Save the updated chat document
+    // Update the aiResponse.analysis field
+    question.aiResponse.analysis = answer;
     await chat.save();
 
-    res.status(200).json({
-      message: "Answer updated successfully",
-      data: question,
-    });
+    res
+      .status(200)
+      .json({ message: "Answer updated successfully", data: question });
   } catch (error) {
-    console.error("Error updating answer:", error);
+    console.error(error);
     res
       .status(500)
       .json({ message: "Error updating answer", error: error.message });
