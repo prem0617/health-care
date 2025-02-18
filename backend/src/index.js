@@ -26,6 +26,7 @@ const DoctorRoutes = require("./routes/doctor");
 const chatbotRoutes = require("./routes/chatbot");
 const verifyChat = require("./routes/verifyChat");
 const prescriptionRoutes = require("./routes/prescription");
+const specializationRoutes = require("./routes/specializationRoutes");
 // Use routes
 app.use("/api/auth", authRoutes);
 app.use("/api/appointments", appointmentRoutes);
@@ -34,6 +35,7 @@ app.use("/api/doctor", DoctorRoutes);
 app.use("/api/chatbot", chatbotRoutes);
 app.use("/api/verifyChat", verifyChat);
 app.use("/api/prescription", prescriptionRoutes);
+app.use("/api/specialization", specializationRoutes);
 
 // Basic error handling
 app.use((err, req, res, next) => {

@@ -11,51 +11,71 @@ interface DecodedToken {
   email?: string;
   doctorId: string;
   name?: string;
+  specialization?: string;
 }
 
-interface ChatHistory {
-  userId: {
-    _id: string;
-    name: string;
+interface Question {
+  question: string;
+  aiResponse: {
+    analysis: string;
+    timestamp: string;
   };
-  questions: {
-    question: string;
-    aiResponse: {
-      analysis: string;
-      timestamp: string;
-    };
-    isChecked: boolean;
-    createdAt: string;
-    _id: string;
-  }[];
+  isChecked: boolean;
+  createdAt: string;
   _id: string;
+  specialization: string;
 }
 
 const DoctorDashboard = () => {
-  const [chatHistory, setChatHistory] = useState<ChatHistory[]>([]);
-  const [doctorName, setDoctorName] = useState<string>("");
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [doctorData, setDoctorData] = useState<DecodedToken>({
+    email: "",
+    doctorId: "",
+    name: "",
+    specialization: "",
+  });
   const [editingQuestion, setEditingQuestion] = useState<string | null>(null);
   const [updatedAnswer, setUpdatedAnswer] = useState<string>("");
+  const [loading, setLoading] = useState<Boolean>(true);
+
+  const fetchQuestions = async () => {
+    try {
+      setLoading(true);
+      if (!doctorData.specialization) {
+        return null;
+      }
+
+      const response = await axios.post(
+        "http://localhost:8000/api/verifyChat/chat-history",
+        { specialization: doctorData.specialization }
+      );
+
+      // Handle the new data format
+      if (response.data?.data) {
+        setQuestions(response?.data?.data);
+      }
+
+      // console.log(response);
+    } catch (error) {
+      console.error("Error fetching questions:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("doctorToken");
     if (token) {
       const decodedToken: DecodedToken = jwtDecode(token);
-      setDoctorName(decodedToken.name || "Doctor");
-      fetchChatHistory();
+      setDoctorData(decodedToken);
     }
   }, []);
 
-  const fetchChatHistory = async () => {
-    try {
-      const response = await axios.get(
-        "http://localhost:8000/api/verifyChat/chat-history"
-      );
-      setChatHistory(response.data.data || []);
-    } catch (error) {
-      console.error("Error fetching chat history:", error);
-    }
-  };
+  useEffect(() => {
+    fetchQuestions();
+  }, [doctorData]);
+
+  // console.log(questions);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -66,11 +86,11 @@ const DoctorDashboard = () => {
     });
   };
 
-  const handleVerifyChat = async ({ chatId, questionId }: any) => {
+  const handleVerifyChat = async (questionId: string) => {
     try {
       const token = localStorage.getItem("doctorToken");
       const response = await axios.put(
-        `http://localhost:8000/api/verifyChat/verify-chat/${chatId}/${questionId}`,
+        `http://localhost:8000/api/verifyChat/verify-chat/${questionId}`,
         {},
         {
           headers: {
@@ -78,29 +98,21 @@ const DoctorDashboard = () => {
           },
         }
       );
-      console.log("Chat verified:", response.data);
 
       // Update the UI locally
-      setChatHistory((prevChatHistory) =>
-        prevChatHistory.map((chat) =>
-          chat._id === chatId
-            ? {
-                ...chat,
-                questions: chat.questions.map((question) =>
-                  question._id === questionId
-                    ? { ...question, isChecked: true }
-                    : question
-                ),
-              }
-            : chat
+      setQuestions((prevQuestions) =>
+        prevQuestions.map((question) =>
+          question._id === questionId
+            ? { ...question, isChecked: true }
+            : question
         )
       );
     } catch (error) {
-      console.error("Error verifying chat:", error);
+      console.error("Error verifying question:", error);
     }
   };
 
-  const handleUpdateAnswer = async (chatId: string, questionId: string) => {
+  const handleUpdateAnswer = async (questionId: string) => {
     if (!updatedAnswer) {
       alert("Please provide an updated answer.");
       return;
@@ -109,7 +121,7 @@ const DoctorDashboard = () => {
     try {
       const token = localStorage.getItem("doctorToken");
       const response = await axios.put(
-        `http://localhost:8000/api/verifyChat/update-answer/${chatId}/${questionId}`,
+        `http://localhost:8000/api/verifyChat/update-answer/${questionId}`,
         { answer: updatedAnswer },
         {
           headers: {
@@ -117,27 +129,19 @@ const DoctorDashboard = () => {
           },
         }
       );
-      console.log("Answer updated:", response.data);
 
       // Update the UI locally
-      setChatHistory((prevChatHistory) =>
-        prevChatHistory.map((chat) =>
-          chat._id === chatId
+      setQuestions((prevQuestions) =>
+        prevQuestions.map((question) =>
+          question._id === questionId
             ? {
-                ...chat,
-                questions: chat.questions.map((question) =>
-                  question._id === questionId
-                    ? {
-                        ...question,
-                        aiResponse: {
-                          ...question.aiResponse,
-                          analysis: updatedAnswer,
-                        },
-                      }
-                    : question
-                ),
+                ...question,
+                aiResponse: {
+                  ...question.aiResponse,
+                  analysis: updatedAnswer,
+                },
               }
-            : chat
+            : question
         )
       );
 
@@ -150,52 +154,48 @@ const DoctorDashboard = () => {
     }
   };
 
+  // console.log(loading);
+
   return (
     <DoctorLayout>
       <div className="p-6">
-        <h1 className="text-2xl font-semibold text-gray-900">
-          Welcome, Dr. {doctorName}
-        </h1>
+        <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
 
         <div className="mt-6 space-y-6">
-          <h2 className="text-xl font-medium text-gray-800">Chat History</h2>
+          <h2 className="text-xl font-medium text-gray-800">Questions</h2>
 
-          {chatHistory.map((chat) => (
-            <Card key={chat._id} className="shadow-md bg-white p-4">
-              <CardHeader>
-                <CardTitle className="font-semibold text-lg text-gray-700 flex justify-between">
-                  Chat with {chat.userId.name}
-                </CardTitle>
-                <p className="text-sm text-gray-500">
-                  {formatDate(chat.questions[0].createdAt)}
-                </p>
-              </CardHeader>
-              <CardContent>
-                {chat.questions.map((question) => (
-                  <div key={question._id} className="mt-4">
+          {loading ? (
+            <div> Loading </div>
+          ) : questions.length > 0 ? (
+            questions.map((question) => (
+              <Card key={question._id} className="shadow-md bg-white p-4">
+                <CardHeader>
+                  <CardTitle className="font-semibold text-lg text-gray-700 flex justify-between">
+                    Question Details
+                  </CardTitle>
+                  <p className="text-sm text-gray-500">
+                    {formatDate(question.createdAt)}
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <div className="mt-4">
                     <div className="flex justify-between">
                       <div className="text-sm font-medium text-gray-800">
                         Q: {question.question}
                       </div>
 
-                      {/* Conditionally render the button only if the question is not checked */}
                       {!question.isChecked && (
                         <Button
                           className="bg-blue-700 hover:bg-blue-800"
-                          onClick={() =>
-                            handleVerifyChat({
-                              chatId: chat._id,
-                              questionId: question._id,
-                            })
-                          }
+                          onClick={() => handleVerifyChat(question._id)}
                         >
-                          Verify Chat
+                          Verify Question
                         </Button>
                       )}
                     </div>
                     <div className="mt-2 text-gray-600">
                       <p>
-                        A:{" "}
+                        A:
                         {editingQuestion === question._id ? (
                           <textarea
                             value={updatedAnswer}
@@ -214,14 +214,11 @@ const DoctorDashboard = () => {
                       <span>{formatDate(question.createdAt)}</span>
                     </div>
 
-                    {/* Show the update button only if editing */}
                     {editingQuestion === question._id ? (
                       <div className="mt-2">
                         <Button
                           className="bg-green-700 hover:bg-green-800"
-                          onClick={() =>
-                            handleUpdateAnswer(chat._id, question._id)
-                          }
+                          onClick={() => handleUpdateAnswer(question._id)}
                         >
                           Save Answer
                         </Button>
@@ -238,10 +235,12 @@ const DoctorDashboard = () => {
                       </Button>
                     )}
                   </div>
-                ))}
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <div>No Questions for you</div>
+          )}
         </div>
       </div>
     </DoctorLayout>

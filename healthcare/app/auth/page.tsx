@@ -21,7 +21,6 @@ import { Calendar } from "@/components/ui/calendar";
 
 export default function AuthPage() {
   const [date, setDate] = useState<Date>();
-
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -33,26 +32,18 @@ export default function AuthPage() {
     firstName: "",
     lastName: "",
     phone: "",
-    date: "",
-    // appointedDoctors: [], // Added initial wallet balance field
   });
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     setLoading(true);
-    const date = new Date("Wed Feb 19 2025 00:00:00 GMT+0530");
-    const formattedDate = date.toISOString().split("T")[0];
-    const data = {
-      email: formData.email,
-      password: formData.password,
-      profile: {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        phone: formData.phone,
-        dateOfBirth: formattedDate,
-      },
-    };
     setError("");
+
+    if (!isLogin && !date) {
+      setError("Please select a date of birth");
+      setLoading(false);
+      return;
+    }
 
     try {
       const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
@@ -67,14 +58,14 @@ export default function AuthPage() {
             profile: {
               firstName: formData.firstName,
               lastName: formData.lastName,
-              phone: formData.phone,
-              date: formData.date,
+              mobile: formData.phone, // Changed to match backend expectation
+              dateOfBirth: date?.toISOString(), // Properly format the date
             },
           };
 
-      const response: any = await axios.post(
+      const response = await axios.post(
         `http://localhost:8000${endpoint}`,
-        payload, // This is the request body
+        payload,
         {
           headers: {
             "Content-Type": "application/json",
@@ -83,18 +74,13 @@ export default function AuthPage() {
       );
 
       const data = response.data;
-
-      // Simulate checking for an error (not needed for most axios responses)
-      if (!response.status || response.status >= 400) {
-        throw new Error(data.message || "Something went wrong");
-      }
-
-      // Store token and redirect
       localStorage.setItem("token", data.token);
-      console.log(data.user);
       route.push("/");
     } catch (err: any) {
-      setError(err.message);
+      console.error("Registration error:", err);
+      setError(
+        err.response?.data?.message || "An error occurred during registration"
+      );
     } finally {
       setLoading(false);
     }
@@ -102,19 +88,6 @@ export default function AuthPage() {
 
   const handleChange = (e: any) => {
     const { name, value } = e.target;
-
-    // Add validation for wallet balance to only allow numbers and decimal point
-    if (name === "walletBalance") {
-      const regex = /^\d*\.?\d*$/;
-      if (value === "" || regex.test(value)) {
-        setFormData((prev) => ({
-          ...prev,
-          [name]: value,
-        }));
-      }
-      return;
-    }
-
     setFormData((prev) => ({
       ...prev,
       [name]: value,

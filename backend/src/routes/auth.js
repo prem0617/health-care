@@ -11,14 +11,14 @@ router.post("/register", async (req, res) => {
     const { email, password, profile, walletBalance } = req.body;
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
       return res.status(400).json({ message: "Email already registered" });
     }
 
     // Create new user
     const user = new User({
-      email,
+      email: email.toLowerCase(),
       password, // Will be hashed by the pre-save middleware
       profile: {
         firstName: profile.firstName,
@@ -58,7 +58,7 @@ router.post("/login", async (req, res) => {
     const { email, password } = req.body;
 
     // Check if user exists
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
@@ -156,13 +156,22 @@ router.post("/doctor/register", async (req, res) => {
     const { email, password, name, specialization, consultationFee, chatFee } =
       req.body;
 
-    const existingDoctor = await Doctor.findOne({ email });
+    // console.log({
+    //   email,
+    //   password,
+    //   name,
+    //   specialization,
+    //   consultationFee,
+    //   chatFee,
+    // });
+
+    const existingDoctor = await Doctor.findOne({ email: email.toLowerCase() });
     if (existingDoctor) {
       return res.status(400).json({ message: "Email already registered" });
     }
 
     const doctor = new Doctor({
-      email,
+      email: email.toLowerCase(),
       password,
       name,
       specialization,
@@ -173,8 +182,13 @@ router.post("/doctor/register", async (req, res) => {
     await doctor.save();
 
     const token = jwt.sign(
-      { doctorId: doctor._id, email: doctor.email },
+      {
+        doctorId: doctor._id,
+        email: doctor.email,
+        specialization: doctor.specialization,
+      },
       process.env.JWT_SECRET,
+
       {
         expiresIn: "24h",
       }
@@ -197,7 +211,7 @@ router.post("/doctor/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const doctor = await Doctor.findOne({ email });
+    const doctor = await Doctor.findOne({ email: email.toLowerCase() });
     if (!doctor) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
@@ -208,7 +222,11 @@ router.post("/doctor/login", async (req, res) => {
     }
 
     const token = jwt.sign(
-      { doctorId: doctor._id, email: doctor.email },
+      {
+        doctorId: doctor._id,
+        email: doctor.email,
+        specialization: doctor.specialization,
+      },
       process.env.JWT_SECRET,
       { expiresIn: "24h" }
     );

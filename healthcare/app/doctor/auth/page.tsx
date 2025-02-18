@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -31,8 +31,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import axios from "axios";
 
 const API_BASE_URL = "http://localhost:8000/api/auth";
+
+export interface Specialization {
+  name: string;
+  _id: string;
+}
 
 // Validation schemas
 const loginSchema = z.object({
@@ -64,6 +70,9 @@ export default function DoctorAuth() {
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
   const [activeTab, setActiveTab] = useState("login");
+  const [specializations, setSpecializations] = useState<Specialization[]>([
+    { name: "", _id: "" },
+  ]);
 
   // Separate forms for login and register
   const loginForm = useForm<LoginFormData>({
@@ -158,6 +167,22 @@ export default function DoctorAuth() {
       setIsLoading(false);
     }
   };
+
+  const fetchSpecialization = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:8000/api/specialization"
+      );
+      console.log(response);
+      setSpecializations(response.data.specializations);
+    } catch (error) {}
+  };
+
+  useEffect(() => {
+    fetchSpecialization();
+  }, []);
+
+  console.log(specializations);
 
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-primary/20 to-secondary/20">
@@ -308,18 +333,17 @@ export default function DoctorAuth() {
                                 <SelectValue placeholder="Select specialization" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="cardiology">
-                                  Cardiology
-                                </SelectItem>
-                                <SelectItem value="neurology">
-                                  Neurology
-                                </SelectItem>
-                                <SelectItem value="orthopedics">
-                                  Orthopedics
-                                </SelectItem>
-                                <SelectItem value="pediatrics">
-                                  Pediatrics
-                                </SelectItem>
+                                {specializations.map((specialization) => (
+                                  <SelectItem
+                                    value={specialization.name}
+                                    key={specialization._id}
+                                  >
+                                    {specialization.name
+                                      .charAt(0)
+                                      .toUpperCase() +
+                                      specialization.name.slice(1)}
+                                  </SelectItem>
+                                ))}
                               </SelectContent>
                             </Select>
                           </FormControl>

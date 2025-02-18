@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Wallet, Activity, Calendar, Stethoscope, Menu, X } from "lucide-react";
+import { Wallet, Calendar, Stethoscope, Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 
@@ -32,26 +32,63 @@ const NavItem: React.FC<NavItemProps> = ({ to, icon, children }: any) => (
   </motion.div>
 );
 
+const getEmailFromToken = () => {
+  const token =
+    localStorage.getItem("token") || localStorage.getItem("doctorToken");
+  if (token) {
+    try {
+      const decodedToken = JSON.parse(atob(token.split(".")[1]));
+      return decodedToken.email;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+};
+
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const [userEmail, setUserEmail] = useState(() => {
-    const token =
-      localStorage.getItem("token") || localStorage.getItem("doctorToken");
-    if (token) {
-      try {
-        const decodedToken = JSON.parse(atob(token.split(".")[1]));
-        return decodedToken.email;
-      } catch {
-        return null;
+  const [hasScrolled, setHasScrolled] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Set initial email from token
+    setUserEmail(getEmailFromToken());
+
+    // Set up storage event listener
+    const handleStorageChange = () => {
+      setUserEmail(getEmailFromToken());
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    // Check for token changes every 1 second
+    const intervalId = setInterval(() => {
+      const currentEmail = getEmailFromToken();
+      if (currentEmail !== userEmail) {
+        setUserEmail(currentEmail);
       }
-    }
-    return null;
-  });
+    }, 1000);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      clearInterval(intervalId);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY;
+      setHasScrolled(scrollPosition > 0);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const pathname = usePathname();
   const isAuthPage = pathname === "/auth" || pathname === "/doctor/auth";
 
-  // Check for token type
   const tokenType = localStorage.getItem("doctorToken") ? "doctor" : "user";
   const isLoggedIn = Boolean(
     localStorage.getItem("token") || localStorage.getItem("doctorToken")
@@ -70,8 +107,21 @@ export default function Navbar() {
     window.location.href = "/";
   };
 
+  const navBackgroundClass = hasScrolled
+    ? "bg-white/10 backdrop-blur-md shadow-sm"
+    : "bg-transparent";
+
+  const getAvatarLetter = () => {
+    if (userEmail) {
+      return userEmail.charAt(0).toUpperCase();
+    }
+    return isLoggedIn ? "..." : "U";
+  };
+
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-transparent mb-10">
+    <nav
+      className={`fixed top-0 left-0 right-0 z-50 mb-10 transition-all duration-300 ${navBackgroundClass}`}
+    >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           <a href="/" className="flex items-center space-x-3">
@@ -101,12 +151,6 @@ export default function Navbar() {
                       Wallet
                     </NavItem>
                     <NavItem
-                      to="/tracker"
-                      icon={<Activity className="h-5 w-5" />}
-                    >
-                      Health Tracker
-                    </NavItem>
-                    <NavItem
                       to="/appointments"
                       icon={<Calendar className="h-5 w-5" />}
                     >
@@ -129,7 +173,7 @@ export default function Navbar() {
                     <PopoverTrigger>
                       <Avatar className="h-10 w-10 bg-blue-500 text-white cursor-pointer ring-2 ring-blue-200 hover:ring-blue-400 transition-all duration-200">
                         <AvatarFallback className="bg-blue-700">
-                          {userEmail?.charAt(0).toUpperCase() || "U"}
+                          {getAvatarLetter()}
                         </AvatarFallback>
                       </Avatar>
                     </PopoverTrigger>
@@ -182,7 +226,7 @@ export default function Navbar() {
                   <div className="flex items-center space-x-3 p-4 bg-white/50 rounded-lg">
                     <Avatar className="h-10 w-10 bg-blue-500 text-white">
                       <AvatarFallback className="bg-blue-700">
-                        {userEmail?.charAt(0).toUpperCase() || "U"}
+                        {getAvatarLetter()}
                       </AvatarFallback>
                     </Avatar>
                     <span className="text-gray-700">{userEmail}</span>
@@ -195,12 +239,6 @@ export default function Navbar() {
                         icon={<Wallet className="h-5 w-5" />}
                       >
                         Wallet
-                      </NavItem>
-                      <NavItem
-                        to="/tracker"
-                        icon={<Activity className="h-5 w-5" />}
-                      >
-                        Health Tracker
                       </NavItem>
                       <NavItem
                         to="/appointments"

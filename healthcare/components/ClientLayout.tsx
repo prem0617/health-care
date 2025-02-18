@@ -15,7 +15,15 @@ export default function ClientLayout({
 }>) {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [searchParams] = useSearchParams();
-  const hideChatbotPaths = ["/", "/publish", "/signin", "/auth/*"];
+  const hideChatbotPaths = [
+    "/",
+    "/publish",
+    "/signin",
+    "/auth/*",
+    "/doctor/dashboard",
+    "/doctor/transactions",
+    "/doctor/chatVerification",
+  ];
   const location = usePathname();
 
   useEffect(() => {

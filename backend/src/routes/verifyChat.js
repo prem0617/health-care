@@ -1,21 +1,32 @@
 const express = require("express");
 const router = express.Router();
 const MedicalChat = require("../models/MedicalChat"); // Import the MedicalChat model
-const mongoose = require("mongoose");
 
 // Route to fetch all chat history for all users
-router.get("/chat-history", async (req, res) => {
+router.post("/chat-history", async (req, res) => {
   try {
-    // Fetch all chat history and populate the userId field with user details (name)
-    const chatHistory = await MedicalChat.find().populate("userId", "name"); // Populate the user's name from the User model
+    const { specialization } = req.body;
 
-    if (!chatHistory || chatHistory.length === 0) {
-      return res.status(404).json({ message: "No chat history found." });
+    if (!specialization) {
+      return res.status(400).json({ message: "Specialization is required" });
     }
 
+    // Fetch all chat history and populate user details
+    const chatHistory = await MedicalChat.find().populate("userId");
+
+    // Filter chat history based on specialization inside questions array
+
+    console.log(chatHistory[0].questions.map((chat) => chat.specialization));
+
+    const filteredData = chatHistory[0].questions.filter(
+      (chat) => chat.specialization === specialization
+    );
+
+    console.log(filteredData);
+
     return res.status(200).json({
-      message: "Chat history fetched successfully",
-      data: chatHistory,
+      message: "Filtered chat history fetched successfully",
+      data: filteredData,
     });
   } catch (error) {
     console.error(error);
@@ -57,41 +68,77 @@ router.put("/verify-chat/:chatId/:questionId", async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 });
-
-const ChatHistory = require("../models/ChatHistory"); // Assuming you have this model
-
-router.put("/update-answer/:chatId/:questionId", async (req, res) => {
-  const { chatId, questionId } = req.params;
-  const { answer } = req.body;
-
+router.put("/verify-chat/:questionId", async (req, res) => {
   try {
-    const chat = await MedicalChat.findById(chatId);
-    if (!chat) {
-      return res.status(404).json({ message: "Chat not found" });
+    const { questionId } = req.params;
+
+    // Find the medical chat containing the question
+    const medicalChat = await MedicalChat.findOne({
+      "questions._id": questionId,
+    });
+
+    if (!medicalChat) {
+      return res.status(404).json({ message: "Question not found" });
     }
 
-    const question = chat.questions.id(questionId);
+    // Find and update the specific question
+    const question = medicalChat.questions.id(questionId);
     if (!question) {
       return res.status(404).json({ message: "Question not found" });
     }
 
-    // Ensure answer is provided for the update
-    if (!answer) {
-      return res.status(400).json({ message: "Answer is required" });
-    }
+    // Update the 'isChecked' field to true
+    question.isChecked = true;
 
-    // Update the aiResponse.analysis field
-    question.aiResponse.analysis = answer;
-    await chat.save();
+    // Save the updated medical chat document
+    await medicalChat.save();
 
-    res
-      .status(200)
-      .json({ message: "Answer updated successfully", data: question });
+    // Return just the updated question
+    return res.status(200).json({
+      message: "Question verified successfully",
+      data: question,
+    });
   } catch (error) {
     console.error(error);
-    res
-      .status(500)
-      .json({ message: "Error updating answer", error: error.message });
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// Route to update a question's answer
+router.put("/update-answer/:questionId", async (req, res) => {
+  try {
+    const { questionId } = req.params;
+    const { answer } = req.body;
+
+    // Find the medical chat containing the question
+    const medicalChat = await MedicalChat.findOne({
+      "questions._id": questionId,
+    });
+
+    if (!medicalChat) {
+      return res.status(404).json({ message: "Question not found" });
+    }
+
+    // Find and update the specific question
+    const question = medicalChat.questions.id(questionId);
+    if (!question) {
+      return res.status(404).json({ message: "Question not found" });
+    }
+
+    // Update the answer
+    question.aiResponse.analysis = answer;
+
+    // Save the updated medical chat document
+    await medicalChat.save();
+
+    // Return just the updated question
+    return res.status(200).json({
+      message: "Answer updated successfully",
+      data: question,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 });
 

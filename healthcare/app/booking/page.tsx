@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Specialization } from "../doctor/auth/page";
 
 const DoctorsPage = () => {
   const [doctorData, setDoctorData] = useState<Doctor[]>([]);
@@ -22,21 +23,9 @@ const DoctorsPage = () => {
   const [specialization, setSpecialization] = useState("All"); // Default to "All"
   const [currentPage, setCurrentPage] = useState(1);
   const doctorsPerPage = 9;
-
-  const fetchDoctor = async () => {
-    try {
-      const endpoint = "/api/doctor";
-      const response = await axios.get(`http://localhost:8000${endpoint}`);
-      setDoctorData(response.data.doctors);
-      setFilteredDoctors(response.data.doctors);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  useEffect(() => {
-    fetchDoctor();
-  }, []);
+  const [specializations, setSpecializations] = useState<Specialization[]>([
+    { name: "", _id: "" },
+  ]);
 
   useEffect(() => {
     const filtered = doctorData.filter(
@@ -56,6 +45,33 @@ const DoctorsPage = () => {
   );
 
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
+  const fetchSpecialization = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:8000/api/specialization"
+      );
+      console.log(response);
+      setSpecializations(response.data.specializations);
+    } catch (error) {}
+  };
+
+  const fetchDoctor = async () => {
+    try {
+      const endpoint = "/api/doctor";
+      const response = await axios.get(`http://localhost:8000${endpoint}`);
+      setDoctorData(response.data.doctors);
+      setFilteredDoctors(response.data.doctors);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchDoctor();
+    fetchSpecialization();
+  }, []);
+  console.log(specializations);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-pink-50 overflow-hidden">
@@ -115,9 +131,24 @@ const DoctorsPage = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="All">All Specializations</SelectItem>
-                <SelectItem value="cardiology">Cardiology</SelectItem>
+                {specializations.map((specialization) => (
+                  <SelectItem
+                    value={
+                      specialization.name && specialization.name.trim() !== ""
+                        ? specialization.name
+                        : "default"
+                    }
+                    key={specialization._id}
+                  >
+                    {specialization.name
+                      ? specialization.name.charAt(0).toUpperCase() +
+                        specialization.name.slice(1)
+                      : "Unnamed Specialization"}
+                  </SelectItem>
+                ))}
+                {/* <SelectItem value="cardiology">Cardiology</SelectItem>
                 <SelectItem value="dermatology">Dermatology</SelectItem>
-                <SelectItem value="neurology">Neurology</SelectItem>
+                <SelectItem value="neurology">Neurology</SelectItem> */}
                 {/* Add more specializations as needed */}
               </SelectContent>
             </Select>

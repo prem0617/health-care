@@ -113,13 +113,20 @@ const DoctorDashboard: React.FC = () => {
 
   const handleCreatePrescription = async () => {
     if (!selectedAppointment) return;
+
     try {
       const token = localStorage.getItem("doctorToken");
       if (!token) return;
-
+      console.log(token);
       const decodedToken: DecodedToken = jwtDecode(token);
       console.log(medications);
-      await axios.post(
+      console.log(decodedToken);
+      console.log({
+        diagnosis,
+        medications: medications,
+        appointmentId: selectedAppointment._id,
+      });
+      const response = await axios.post(
         `${BACKEND_URL}/api/prescription`,
         {
           diagnosis,
@@ -132,6 +139,8 @@ const DoctorDashboard: React.FC = () => {
           },
         }
       );
+
+      console.log(response);
 
       setPreviousAppointments(
         previousAppointments.map((app) =>
@@ -242,11 +251,13 @@ const DoctorDashboard: React.FC = () => {
     </Card>
   );
 
+  console.log(upcomingAppointments);
+
   return (
     <DoctorLayout>
       <div className="p-8 bg-gray-50 min-h-screen">
         <h1 className="text-4xl font-bold text-gray-800 mb-8">
-          Welcome back, Dr. {doctorName}!
+          Welcome back, Dr!
         </h1>
 
         {/* Upcoming Appointments */}
@@ -254,8 +265,12 @@ const DoctorDashboard: React.FC = () => {
           Upcoming Appointments
         </h2>
         <div className="grid gap-4 mb-8 md:grid-cols-2 lg:grid-cols-3">
-          {upcomingAppointments.map((appointment) =>
-            renderAppointmentCard(appointment, true)
+          {upcomingAppointments.length > 0 ? (
+            upcomingAppointments.map((appointment) =>
+              renderAppointmentCard(appointment, true)
+            )
+          ) : (
+            <div>No Upcoming Appointment</div>
           )}
         </div>
 
@@ -264,8 +279,12 @@ const DoctorDashboard: React.FC = () => {
           Previous Appointments
         </h2>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {previousAppointments.map((appointment) =>
-            renderAppointmentCard(appointment, false)
+          {previousAppointments.length > 0 ? (
+            previousAppointments.map((appointment) =>
+              renderAppointmentCard(appointment, false)
+            )
+          ) : (
+            <div>No Previous Appointment</div>
           )}
         </div>
       </div>

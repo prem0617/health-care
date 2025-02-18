@@ -76,14 +76,14 @@ export default function HeroSection() {
                 Get Doctor
               </Button>
             </Link>
-            <Button
+            {/* <Button
               variant="outline"
               size="lg"
               className="border-2 border-blue-400 text-blue-700 text-lg hover:bg-blue-50"
             >
               <Stethoscope className="mr-2 h-5 w-5" />
               Explore Features
-            </Button>
+            </Button> */}
           </motion.div>
 
           {/* Feature Grid */}

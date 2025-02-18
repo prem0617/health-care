@@ -9,7 +9,6 @@ router.post("/", authMiddleware, async (req, res) => {
   try {
     const { appointmentId, diagnosis, medications } = req.body;
 
-    // Input validation
     if (!appointmentId) {
       return res.status(400).json({ message: "Appointment ID is required" });
     }
@@ -17,6 +16,8 @@ router.post("/", authMiddleware, async (req, res) => {
     if (!diagnosis) {
       return res.status(400).json({ message: "Diagnosis is required" });
     }
+
+    console.log({ appointmentId, diagnosis, medications });
 
     if (
       !medications ||
@@ -45,6 +46,10 @@ router.post("/", authMiddleware, async (req, res) => {
     if (!appointment) {
       return res.status(404).json({ message: "Appointment not found" });
     }
+
+    console.log(appointment);
+
+    console.log(req.user);
 
     // Verify that the doctor making the request is the same as the appointment's doctor
     if (appointment.doctorId.toString() !== req.user.doctorId) {
@@ -77,6 +82,15 @@ router.post("/", authMiddleware, async (req, res) => {
       error: error.message,
     });
   }
+});
+
+router.get("/getMedicine", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const prescription = await Prescription.find({ patientId: userId });
+
+    return res.json(prescription);
+  } catch (error) {}
 });
 
 module.exports = router;

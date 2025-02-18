@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Send, X, Check } from "lucide-react"; // Import the Check icon
+import { Send, X, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
@@ -7,7 +7,7 @@ import { jwtDecode } from "jwt-decode";
 interface Message {
   text: string;
   isUser: boolean;
-  isChecked?: boolean; // Add isChecked to the Message interface
+  isChecked?: boolean;
 }
 
 interface ChatbotProps {
@@ -27,7 +27,6 @@ export const Chatbot: React.FC<ChatbotProps> = ({
   let decodedToken: any;
   if (token) {
     decodedToken = jwtDecode(token);
-    console.log("Decoded token:", decodedToken);
   }
 
   let userId: any;
@@ -56,43 +55,46 @@ export const Chatbot: React.FC<ChatbotProps> = ({
       const response = await axios.get(
         `http://localhost:8000/api/chatbot/chats/${userId}`
       );
-      console.log("Fetched chat history:", response.data);
 
-      // Access the chatHistory array inside the response.data object
-      const chatHistory = response.data.chatHistory;
-
-      // Ensure chatHistory is an array
-      if (Array.isArray(chatHistory)) {
-        const formattedMessages = chatHistory
+      if (
+        response.data.chatHistory &&
+        Array.isArray(response.data.chatHistory)
+      ) {
+        const formattedMessages = response.data.chatHistory
           .map((chat: any) => {
-            // Check if the necessary properties exist in chat object
             if (chat.question && chat.aiResponse?.analysis) {
               return [
                 {
                   text: chat.question,
                   isUser: true,
-                  isChecked: chat.isChecked, // Add isChecked for user messages
+                  isChecked: chat.isChecked,
                 },
                 {
                   text: chat.aiResponse.analysis,
                   isUser: false,
-                  isChecked: chat.isChecked, // Add isChecked for AI responses
+                  isChecked: chat.isChecked,
                 },
               ];
-            } else {
-              console.warn("Invalid chat data:", chat);
-              return []; // Return an empty array if data is invalid
             }
+            return [];
           })
-          .flat(); // Flatten the array to merge user & AI messages properly
+          .flat();
 
-        console.log("Formatted messages:", formattedMessages);
-        setMessages(formattedMessages);
-      } else {
-        console.error("chatHistory is not an array:", chatHistory);
+        setMessages([
+          { text: initialMessage, isUser: false },
+          ...formattedMessages,
+        ]);
       }
-    } catch (error) {
+    } catch (error: any) {
+      // If it's a 404 error (no chat history), just show the initial message
+      if (error.response && error.response.status === 404) {
+        setMessages([{ text: initialMessage, isUser: false }]);
+        return;
+      }
+
+      // For other errors, log them but don't break the UI
       console.error("Error fetching chat history:", error);
+      setMessages([{ text: initialMessage, isUser: false }]);
     }
   };
 
@@ -107,7 +109,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({
     if (inputValue.trim()) {
       const newMessages = [
         ...messages,
-        { text: inputValue, isUser: true, isChecked: false }, // New user messages are unchecked by default
+        { text: inputValue, isUser: true, isChecked: false },
       ];
       setMessages([
         ...newMessages,
@@ -116,27 +118,23 @@ export const Chatbot: React.FC<ChatbotProps> = ({
       setInputValue("");
 
       try {
+        console.log({ question: inputValue, userId: decodedToken.userId });
         const response = await axios.post(
           `http://localhost:8000/api/chatbot/diagnose`,
           { question: inputValue, userId: decodedToken.userId }
         );
 
-        if (response.status !== 200) {
-          throw new Error("Network response was not ok");
-        }
-
         const botMessage = response.data.analysis;
-        console.log("Bot response:", botMessage);
         setMessages([
           ...newMessages,
-          { text: botMessage, isUser: false, isChecked: false }, // New AI responses are unchecked by default
+          { text: botMessage, isUser: false, isChecked: false },
         ]);
       } catch (error) {
         console.error("Error fetching response:", error);
         setMessages([
           ...newMessages,
           {
-            text: "Sorry, something went wrong.",
+            text: "Sorry, something went wrong. Please try again.",
             isUser: false,
             isChecked: false,
           },
@@ -168,7 +166,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({
       });
     } catch (error) {
       console.error("Error formatting message:", error);
-      return text; // Return original text if formatting fails
+      return text;
     }
   };
 
@@ -228,7 +226,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({
                     <div className="whitespace-pre-wrap font-sans">
                       {formatMessage(message.text)}
                     </div>
-                    {message.isChecked && ( // Show checkmark if isChecked is true
+                    {message.isChecked && (
                       <div
                         className={`absolute -top-2 -right-2 p-1 rounded-full ${
                           isDarkMode ? "bg-green-600" : "bg-green-500"

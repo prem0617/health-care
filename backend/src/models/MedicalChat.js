@@ -9,6 +9,10 @@ const medicalChatSchema = new mongoose.Schema({
   },
   questions: [
     {
+      specialization: {
+        type: String,
+        required: true,
+      },
       question: {
         type: String,
         required: true,
