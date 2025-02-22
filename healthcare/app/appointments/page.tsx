@@ -115,6 +115,11 @@ const formatCurrency = (amount: number, currency: string) => {
 const Page = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const isAppointmentPassed = (date: string) => {
     return new Date(date) < new Date();
@@ -155,9 +160,11 @@ const Page = () => {
   };
 
   useEffect(() => {
-    fetchUserAppointment();
-    fetchPrescriptions();
-  }, []);
+    if (isClient) {
+      fetchUserAppointment();
+      fetchPrescriptions();
+    }
+  }, [isClient]);
 
   const getPrescriptionByAppointmentId = (appointmentId: string) => {
     return prescriptions.find(
