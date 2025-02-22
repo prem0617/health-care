@@ -90,7 +90,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const isAuthPage = pathname === "/auth" || pathname === "/doctor/auth";
 
-  const tokenType = localStorage.getItem("doctorToken") ? "doctor" : "user";
+  const tokenType = localStorage.getItem("doctorToken") ? "doctor" : "token";
   const isLoggedIn = Boolean(
     localStorage.getItem("token") || localStorage.getItem("doctorToken")
   );
@@ -118,7 +118,7 @@ export default function Navbar() {
     }
     return isLoggedIn ? "..." : "U";
   };
-  console.log(tokenType);
+
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 mb-10 transition-all duration-300 ${navBackgroundClass}`}
@@ -155,7 +155,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center space-x-6">
             {isLoggedIn ? (
               <>
-                {tokenType === "user" && (
+                {tokenType === "token" && (
                   <>
                     <NavItem to="/wallet" icon={<Wallet className="h-5 w-5" />}>
                       Wallet
@@ -242,7 +242,7 @@ export default function Navbar() {
                     <span className="text-gray-700">{userEmail}</span>
                   </div>
 
-                  {tokenType === "user" && (
+                  {tokenType === "token" && (
                     <>
                       <NavItem
                         to="/wallet"

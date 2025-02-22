@@ -3,7 +3,6 @@
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Stethoscope,
   UserPlus,
@@ -16,9 +15,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-const Spline = dynamic(() => import("@splinetool/react-spline"), {
-  ssr: false,
-});
+import Spline from "@splinetool/react-spline";
 
 export default function HeroSection() {
   const fadeInUp = {
