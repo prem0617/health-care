@@ -36,7 +36,7 @@ const DoctorDashboard = () => {
   });
   const [editingQuestion, setEditingQuestion] = useState<string | null>(null);
   const [updatedAnswer, setUpdatedAnswer] = useState<string>("");
-  const [loading, setLoading] = useState<Boolean>(true);
+  const [loading, setLoading] = useState<boolean>(true);
 
   const fetchQuestions = async () => {
     try {
@@ -63,6 +63,7 @@ const DoctorDashboard = () => {
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const token = localStorage.getItem("doctorToken");
     if (token) {

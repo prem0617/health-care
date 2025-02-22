@@ -61,6 +61,7 @@ const Transactions = () => {
         }
       } catch (err) {
         setError("Failed to fetch transactions");
+        console.log(err);
       } finally {
         setLoading(false);
       }

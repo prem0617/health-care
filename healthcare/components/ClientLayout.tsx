@@ -4,7 +4,7 @@ import NavBar from "@/components/custom/NavBar";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Chatbot } from "./ChatBot";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { usePathname } from "next/navigation";
 import GyaniAIButton from "./ui/GyaniAIButton";
 

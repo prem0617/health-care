@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/button";
 import {
   Stethoscope,

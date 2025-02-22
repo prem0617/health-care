@@ -175,7 +175,9 @@ export default function DoctorAuth() {
       );
       console.log(response);
       setSpecializations(response.data.specializations);
-    } catch (error) {}
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   useEffect(() => {

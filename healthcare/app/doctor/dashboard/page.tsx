@@ -298,6 +298,8 @@ const DoctorDashboard: React.FC = () => {
     </Card>
   );
 
+  if (doctorName) console.log(doctorName);
+
   return (
     <DoctorLayout>
       <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">

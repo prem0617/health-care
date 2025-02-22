@@ -53,7 +53,9 @@ const DoctorsPage = () => {
       );
       console.log(response);
       setSpecializations(response.data.specializations);
-    } catch (error) {}
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const fetchDoctor = async () => {

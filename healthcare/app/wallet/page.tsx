@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import axios from "axios";
 
 // Types
 interface Transaction {
@@ -68,6 +67,7 @@ const WalletPage = () => {
       const data = await response.json();
       setWallet(data.user.wallet);
     } catch (error) {
+      console.log(error);
       showNotification("error", "Failed to fetch wallet details");
     }
   };
@@ -86,10 +86,12 @@ const WalletPage = () => {
       console.log(data);
       setTransactions(data.transactions);
     } catch (error) {
+      console.log(error);
       showNotification("error", "Failed to fetch transactions");
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchWalletDetails();
     fetchTransactions();
@@ -121,6 +123,7 @@ const WalletPage = () => {
         fetchTransactions();
       }
     } catch (error) {
+      console.log(error);
       showNotification("error", "Failed to recharge wallet");
     }
     setLoading(false);

@@ -52,11 +52,10 @@ export default function Navbar() {
   const [hasScrolled, setHasScrolled] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    // Set initial email from token
     setUserEmail(getEmailFromToken());
 
-    // Set up storage event listener
     const handleStorageChange = () => {
       setUserEmail(getEmailFromToken());
     };
@@ -77,6 +76,7 @@ export default function Navbar() {
     };
   }, []);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY;

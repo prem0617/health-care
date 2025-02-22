@@ -68,6 +68,7 @@ const Page = () => {
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchDoctor();
     fetchBookedSlots();

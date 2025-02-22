@@ -2,22 +2,18 @@
 
 import HeroSecetion from "@/components/custom/HeroSecetion";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 export default function Home() {
   const router = useRouter();
-  const [token, setToken] = useState<string>();
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    const token = localStorage.getItem("token");
     const doctorToken = localStorage.getItem("doctorToken");
 
     if (doctorToken) {
       router.push("/doctor/dashboard");
       return;
-    }
-
-    if (token) {
-      setToken(token);
     }
   }, []);
 

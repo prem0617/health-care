@@ -86,18 +86,17 @@ export const Chatbot: React.FC<ChatbotProps> = ({
         ]);
       }
     } catch (error: any) {
-      // If it's a 404 error (no chat history), just show the initial message
       if (error.response && error.response.status === 404) {
         setMessages([{ text: initialMessage, isUser: false }]);
         return;
       }
 
-      // For other errors, log them but don't break the UI
       console.error("Error fetching chat history:", error);
       setMessages([{ text: initialMessage, isUser: false }]);
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (userId) {
       fetchOldMessages();
