@@ -20,6 +20,8 @@ export default function ClientLayout({
     "/publish",
     "/signin",
     "/auth/*",
+    "/auth",
+    "/doctor/auth",
     "/doctor/dashboard",
     "/doctor/transactions",
     "/doctor/chatVerification",

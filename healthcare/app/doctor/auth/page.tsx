@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/select";
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:8000/api/auth";
+const API_BASE_URL = "https://health-care-j1k8.onrender.com/api/auth";
 
 export interface Specialization {
   name: string;
@@ -171,7 +171,7 @@ export default function DoctorAuth() {
   const fetchSpecialization = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8000/api/specialization"
+        "https://health-care-j1k8.onrender.com/api/specialization"
       );
       console.log(response);
       setSpecializations(response.data.specializations);

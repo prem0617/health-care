@@ -57,11 +57,14 @@ const WalletPage = () => {
 
   const fetchWalletDetails = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/auth/getUser", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      const response = await fetch(
+        "https://health-care-j1k8.onrender.com/api/auth/getUser",
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
       const data = await response.json();
       setWallet(data.user.wallet);
     } catch (error) {
@@ -71,11 +74,14 @@ const WalletPage = () => {
 
   const fetchTransactions = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/transactions", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      const response = await fetch(
+        "https://health-care-j1k8.onrender.com/api/transactions",
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
       const data = await response.json();
       console.log(data);
       setTransactions(data.transactions);
@@ -93,7 +99,7 @@ const WalletPage = () => {
     setLoading(true);
     try {
       const response = await fetch(
-        "http://localhost:8000/api/auth/updateWallet",
+        "https://health-care-j1k8.onrender.com/api/auth/updateWallet",
         {
           method: "POST",
           headers: {

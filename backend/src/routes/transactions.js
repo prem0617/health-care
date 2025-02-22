@@ -68,10 +68,10 @@ router.get("/doctor/:doctorId", async (req, res) => {
         path: "userId",
         select: "profile.firstName profile.lastName profile.phone email",
       })
-      // .populate({
-      //   path: "appointmentId",
-      //   select: "date slot status isFirstConsultation",
-      // })
+      .populate({
+        path: "appointmentId",
+        select: "date slot status isFirstConsultation",
+      })
       .sort("-createdAt");
 
     res.json({

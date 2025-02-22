@@ -64,7 +64,7 @@ export default function AuthPage() {
           };
 
       const response = await axios.post(
-        `http://localhost:8000${endpoint}`,
+        `https://health-care-j1k8.onrender.com${endpoint}`,
         payload,
         {
           headers: {

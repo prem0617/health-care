@@ -46,7 +46,7 @@ const DoctorDashboard = () => {
       }
 
       const response = await axios.post(
-        "http://localhost:8000/api/verifyChat/chat-history",
+        "https://health-care-j1k8.onrender.com/api/verifyChat/chat-history",
         { specialization: doctorData.specialization }
       );
 
@@ -90,7 +90,7 @@ const DoctorDashboard = () => {
     try {
       const token = localStorage.getItem("doctorToken");
       const response = await axios.put(
-        `http://localhost:8000/api/verifyChat/verify-chat/${questionId}`,
+        `https://health-care-j1k8.onrender.com/api/verifyChat/verify-chat/${questionId}`,
         {},
         {
           headers: {
@@ -121,7 +121,7 @@ const DoctorDashboard = () => {
     try {
       const token = localStorage.getItem("doctorToken");
       const response = await axios.put(
-        `http://localhost:8000/api/verifyChat/update-answer/${questionId}`,
+        `https://health-care-j1k8.onrender.com/api/verifyChat/update-answer/${questionId}`,
         { answer: updatedAnswer },
         {
           headers: {
@@ -165,7 +165,9 @@ const DoctorDashboard = () => {
           <h2 className="text-xl font-medium text-gray-800">Questions</h2>
 
           {loading ? (
-            <div> Loading </div>
+            <div className="flex items-center justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500" />
+            </div>
           ) : questions.length > 0 ? (
             questions.map((question) => (
               <Card key={question._id} className="shadow-md bg-white p-4">

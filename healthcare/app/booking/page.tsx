@@ -49,7 +49,7 @@ const DoctorsPage = () => {
   const fetchSpecialization = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8000/api/specialization"
+        "https://health-care-j1k8.onrender.com/api/specialization"
       );
       console.log(response);
       setSpecializations(response.data.specializations);
@@ -59,7 +59,9 @@ const DoctorsPage = () => {
   const fetchDoctor = async () => {
     try {
       const endpoint = "/api/doctor";
-      const response = await axios.get(`http://localhost:8000${endpoint}`);
+      const response = await axios.get(
+        `https://health-care-j1k8.onrender.com${endpoint}`
+      );
       setDoctorData(response.data.doctors);
       setFilteredDoctors(response.data.doctors);
     } catch (error) {

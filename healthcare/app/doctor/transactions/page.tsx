@@ -11,6 +11,11 @@ interface DecodedToken {
   name: string;
 }
 
+interface Slot {
+  startTime: string;
+  endTime: string;
+}
+
 interface Transaction {
   _id: string;
   amount: number;
@@ -25,7 +30,7 @@ interface Transaction {
   };
   appointmentId: {
     date: string;
-    slot: string;
+    slot: Slot;
     status: string;
     isFirstConsultation: boolean;
   };
@@ -41,13 +46,11 @@ const Transactions = () => {
     const fetchTransactions = async (doctorId: string) => {
       try {
         const response = await fetch(
-          `http://localhost:8000/api/transactions/doctor/${doctorId}`
+          `https://health-care-j1k8.onrender.com/api/transactions/doctor/${doctorId}`
         );
         const result = await response.json();
-        console.log(doctorId);
         if (response.ok) {
           setTransactions(result.data.transactions);
-          // Calculate total amount
           const total = result.data.transactions.reduce(
             (sum: number, tx: Transaction) => sum + tx.amount,
             0
@@ -66,11 +69,18 @@ const Transactions = () => {
     const token = localStorage.getItem("doctorToken");
     if (token) {
       const decodedToken: DecodedToken = jwtDecode(token);
-      console.log(decodedToken);
-
       fetchTransactions(decodedToken.doctorId);
     }
   }, []);
+
+  const formatTime = (time: string) => {
+    // Convert 24-hour format to 12-hour format with AM/PM
+    const [hours, minutes] = time?.split(":");
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const formattedHour = hour % 12 || 12;
+    return `${formattedHour}:${minutes} ${ampm}`;
+  };
 
   if (loading) {
     return (
@@ -104,7 +114,7 @@ const Transactions = () => {
                 <div>
                   <p className="text-sm text-green-600">Total Revenue</p>
                   <p className="text-2xl font-bold text-green-700">
-                    {totalAmount.toLocaleString()}
+                    ₹{totalAmount.toLocaleString()}
                   </p>
                 </div>
               </div>
@@ -176,12 +186,16 @@ const Transactions = () => {
                     </td>
                     <td className="px-6 py-4">
                       <span className="px-2 py-1 text-sm rounded-full bg-blue-50 text-blue-600">
-                        {transaction.appointmentId.slot}
+                        {transaction.appointmentId.slot?.startTime &&
+                          formatTime(transaction.appointmentId.slot?.startTime)}
+                        -{" "}
+                        {transaction.appointmentId.slot?.endTime &&
+                          formatTime(transaction.appointmentId.slot?.endTime)}
                       </span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-lg font-semibold text-gray-900">
-                        ${transaction.amount}
+                        ₹{transaction.amount}
                       </div>
                       <div className="text-sm text-gray-500">
                         {new Date(transaction.createdAt).toLocaleDateString()}

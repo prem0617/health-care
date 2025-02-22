@@ -53,7 +53,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({
       if (!userId) return;
 
       const response = await axios.get(
-        `http://localhost:8000/api/chatbot/chats/${userId}`
+        `https://health-care-j1k8.onrender.com/api/chatbot/chats/${userId}`
       );
 
       if (
@@ -120,7 +120,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({
       try {
         console.log({ question: inputValue, userId: decodedToken.userId });
         const response = await axios.post(
-          `http://localhost:8000/api/chatbot/diagnose`,
+          `https://health-care-j1k8.onrender.com/api/chatbot/diagnose`,
           { question: inputValue, userId: decodedToken.userId }
         );
 

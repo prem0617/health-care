@@ -17,16 +17,21 @@ export interface BookedSlot {
   date: string;
   startTime: string;
 }
-
+// lib/types.ts
 export interface Appointment {
   _id: string;
   date: string;
-  startTime: string;
-  patientName: string;
-  isFirstConsultation: boolean;
-  status: "scheduled" | "completed" | "cancelled";
+  patientId: {
+    profile: {
+      firstName: string;
+      lastName: string;
+    };
+  };
+  doctorId: string;
   zoomLink?: string;
-  hasPrescription?: boolean;
+  isFirstConsultation: boolean;
+  prescriptionId?: string; // Add this field
+  hasPrescription?: boolean; // You can remove this field since we'll use prescriptionId
 }
 
 export interface Prescription {

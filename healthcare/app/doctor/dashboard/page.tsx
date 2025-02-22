@@ -13,12 +13,21 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar, User, Video, FileSignature, Edit } from "lucide-react";
+import {
+  Calendar,
+  User,
+  Video,
+  FileSignature,
+  Edit,
+  Loader2,
+  CalendarX,
+} from "lucide-react";
 import type { Appointment } from "@/lib/types";
 import DoctorLayout from "@/components/custom/DoctorLayout";
 
 const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  "https://health-care-j1k8.onrender.com";
 
 interface DecodedToken {
   email?: string;
@@ -33,7 +42,33 @@ interface Medication {
   duration: string;
 }
 
+const EmptyState = ({ message }: { message: string }) => (
+  <Card className="col-span-full p-4 sm:p-6">
+    <div className="flex flex-col items-center justify-center text-center p-4 sm:p-6">
+      <CalendarX className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400 mb-3 sm:mb-4" />
+      <h3 className="text-base sm:text-lg font-medium text-gray-900">
+        {message}
+      </h3>
+      <p className="text-sm sm:text-base text-gray-500 mt-2">
+        No appointments found at this time.
+      </p>
+    </div>
+  </Card>
+);
+
+const LoadingState = () => (
+  <div className="col-span-full flex justify-center items-center p-6 sm:p-12">
+    <div className="flex flex-col items-center">
+      <Loader2 className="w-6 h-6 sm:w-8 sm:h-8 text-blue-500 animate-spin mb-3 sm:mb-4" />
+      <p className="text-sm sm:text-base text-gray-600">
+        Loading appointments...
+      </p>
+    </div>
+  </div>
+);
+
 const DoctorDashboard: React.FC = () => {
+  const [isLoading, setIsLoading] = useState(true);
   const [upcomingAppointments, setUpcomingAppointments] = useState<
     Appointment[]
   >([]);
@@ -60,6 +95,7 @@ const DoctorDashboard: React.FC = () => {
   }, []);
 
   const fetchAppointments = async (doctorId: string) => {
+    setIsLoading(true);
     try {
       const token = localStorage.getItem("doctorToken");
       if (!token) return;
@@ -83,6 +119,10 @@ const DoctorDashboard: React.FC = () => {
       }
     } catch (error) {
       console.error("Error fetching appointments:", error);
+      setUpcomingAppointments([]);
+      setPreviousAppointments([]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -192,29 +232,30 @@ const DoctorDashboard: React.FC = () => {
       key={appointment._id}
       className="hover:shadow-lg transition-shadow duration-300 ease-in-out bg-white"
     >
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between">
-          <div className="space-y-3">
-            <div className="flex items-center space-x-3">
-              <Calendar className="w-5 h-5 text-blue-500" />
-              <span className="text-gray-700 font-medium">
+      <CardContent className="p-4 sm:p-6">
+        <div className="flex flex-col lg:flex-row items-start justify-between space-y-5 gap-4 sm:gap-0">
+          <div className="space-y-2 sm:space-y-3 w-full sm:w-auto">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" />
+              <span className="text-sm sm:text-base text-gray-700 font-medium">
                 {formatDate(appointment.date)}
               </span>
             </div>
-            <div className="flex items-center space-x-3">
-              <User className="w-5 h-5 text-purple-500" />
-              <span className="text-gray-600">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <User className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500 flex-shrink-0" />
+              <span className="text-sm sm:text-base text-gray-600">
                 {appointment.patientId.profile.firstName +
                   " " +
                   appointment.patientId.profile.lastName}
               </span>
             </div>
           </div>
-          <div className="flex flex-col space-y-2">
+          <div className="flex flex-col space-y-2 w-full sm:w-auto">
             {isUpcoming && (
               <Button
                 variant="outline"
                 size="sm"
+                className="w-full sm:w-auto text-sm"
                 onClick={() => openZoomDialog(appointment)}
               >
                 {appointment.zoomLink ? (
@@ -230,20 +271,26 @@ const DoctorDashboard: React.FC = () => {
                 )}
               </Button>
             )}
-            {!isUpcoming && !appointment.hasPrescription && (
+            {!isUpcoming && !appointment.prescriptionId && (
               <Button
                 variant="outline"
                 size="sm"
+                className="w-full sm:w-auto text-sm"
                 onClick={() => openPrescriptionDialog(appointment)}
               >
                 <FileSignature className="w-4 h-4 mr-2" />
                 Add Prescription
               </Button>
             )}
+            {!isUpcoming && appointment.prescriptionId && (
+              <span className="inline-flex w-full sm:w-[145px] justify-center items-center px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-green-100 text-green-800">
+                Prescription Added
+              </span>
+            )}
           </div>
         </div>
         {appointment.isFirstConsultation && (
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 mt-2">
+          <span className="inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-blue-100 text-blue-800 mt-2">
             First Visit
           </span>
         )}
@@ -251,40 +298,42 @@ const DoctorDashboard: React.FC = () => {
     </Card>
   );
 
-  console.log(upcomingAppointments);
-
   return (
     <DoctorLayout>
-      <div className="p-8 bg-gray-50 min-h-screen">
-        <h1 className="text-4xl font-bold text-gray-800 mb-8">
+      <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-6 lg:mb-8">
           Welcome back, Dr!
         </h1>
 
         {/* Upcoming Appointments */}
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+        <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-3 sm:mb-4">
           Upcoming Appointments
         </h2>
-        <div className="grid gap-4 mb-8 md:grid-cols-2 lg:grid-cols-3">
-          {upcomingAppointments.length > 0 ? (
+        <div className="grid gap-3 sm:gap-4 mb-6 sm:mb-8 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
+          {isLoading ? (
+            <LoadingState />
+          ) : upcomingAppointments.length > 0 ? (
             upcomingAppointments.map((appointment) =>
               renderAppointmentCard(appointment, true)
             )
           ) : (
-            <div>No Upcoming Appointment</div>
+            <EmptyState message="No Upcoming Appointments" />
           )}
         </div>
 
         {/* Previous Appointments */}
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+        <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-3 sm:mb-4">
           Previous Appointments
         </h2>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {previousAppointments.length > 0 ? (
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
+          {isLoading ? (
+            <LoadingState />
+          ) : previousAppointments.length > 0 ? (
             previousAppointments.map((appointment) =>
               renderAppointmentCard(appointment, false)
             )
           ) : (
-            <div>No Previous Appointment</div>
+            <EmptyState message="No Previous Appointments" />
           )}
         </div>
       </div>

@@ -32,7 +32,7 @@ const Page = () => {
   const fetchDoctor = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:8000/api/doctor/${id}`
+        `https://health-care-j1k8.onrender.com/api/doctor/${id}`
       );
       setDoctor(response.data.doctor);
     } catch (error) {
@@ -44,7 +44,7 @@ const Page = () => {
   const fetchBookedSlots = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:8000/api/appointments/doctor/${id}`
+        `https://health-care-j1k8.onrender.com/api/appointments/doctor/${id}`
       );
       console.log(response, "Doctor Booked slots");
       const appointments = response.data.data?.upcomingAppointments;
@@ -103,7 +103,7 @@ const Page = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/appointments",
+        "https://health-care-j1k8.onrender.com/api/appointments",
         {
           doctorId: id,
           date: selectedDate,

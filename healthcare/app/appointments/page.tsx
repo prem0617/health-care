@@ -122,11 +122,14 @@ const Page = () => {
 
   const fetchUserAppointment = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/transactions", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      const response = await fetch(
+        "https://health-care-j1k8.onrender.com/api/transactions",
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
       const data = await response.json();
       setTransactions(data.transactions);
     } catch (error) {
@@ -137,7 +140,7 @@ const Page = () => {
   const fetchPrescriptions = async () => {
     try {
       const response = await fetch(
-        "http://localhost:8000/api/prescription/getMedicine",
+        "https://health-care-j1k8.onrender.com/api/prescription/getMedicine",
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
