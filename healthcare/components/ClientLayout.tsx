@@ -1,20 +1,17 @@
-// ClientLayout.tsx
 "use client";
+import { Suspense, useEffect, useState } from "react";
 import NavBar from "@/components/custom/NavBar";
-import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useSearchParams, usePathname } from "next/navigation";
 import { Chatbot } from "./ChatBot";
 import { motion } from "framer-motion";
-import { usePathname } from "next/navigation";
 import GyaniAIButton from "./ui/GyaniAIButton";
 
-export default function ClientLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+// Separate component for search params handling
+function LayoutContent({ children }: { children: React.ReactNode }) {
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [searchParams] = useSearchParams();
+  const searchParams = useSearchParams();
+  const location = usePathname();
+
   const hideChatbotPaths = [
     "/",
     "/publish",
@@ -26,7 +23,6 @@ export default function ClientLayout({
     "/doctor/transactions",
     "/doctor/chatVerification",
   ];
-  const location = usePathname();
 
   useEffect(() => {
     const chatOpenParam = new URLSearchParams(
@@ -38,7 +34,7 @@ export default function ClientLayout({
   }, [searchParams]);
 
   return (
-    <div className="relative ">
+    <div className="relative">
       <motion.div
         animate={{
           scale: isChatOpen ? 0.95 : 1,
@@ -59,6 +55,7 @@ export default function ClientLayout({
         <NavBar />
         {children}
       </motion.div>
+
       {!hideChatbotPaths.includes(location) && (
         <Chatbot
           isOpen={isChatOpen}
@@ -71,5 +68,27 @@ export default function ClientLayout({
         <GyaniAIButton setIsChatOpen={setIsChatOpen} isDarkMode={false} />
       )}
     </div>
+  );
+}
+
+// Main layout component with Suspense boundary
+export default function ClientLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <Suspense
+      fallback={
+        <div className="w-full min-h-screen">
+          <NavBar />
+          <div className="flex items-center justify-center h-[calc(100vh-64px)]">
+            Loading...
+          </div>
+        </div>
+      }
+    >
+      <LayoutContent children={children} />
+    </Suspense>
   );
 }

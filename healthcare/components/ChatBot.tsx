@@ -23,7 +23,13 @@ export const Chatbot: React.FC<ChatbotProps> = ({
   isDarkMode,
   initialMessage = "Hi there! How can I help you today?",
 }) => {
-  const token = localStorage.getItem("token");
+  const [token, setToken] = useState<string>();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) setToken(token);
+  }, []);
+
   let decodedToken: any;
   if (token) {
     decodedToken = jwtDecode(token);
