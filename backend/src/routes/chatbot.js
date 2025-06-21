@@ -24,6 +24,7 @@ router.post("/diagnose", async (req, res) => {
     }
 
     const specializations = await Specialization.find();
+    console.log(specializations);
     const specializationNames = specializations
       .map((spec) => spec.name)
       .join(", ");
@@ -44,6 +45,8 @@ router.post("/diagnose", async (req, res) => {
     Only respond with one of the exact specialization names listed, nothing else.
     
     Question: ${question}`;
+
+    console.log(specializationNames);
 
     const specializationCompletion = await openai.chat.completions.create({
       model: "gpt-4o",
@@ -66,7 +69,7 @@ router.post("/diagnose", async (req, res) => {
       specializationCompletion.choices[0]?.message?.content
         .toLowerCase()
         .trim();
-
+    console.log(determinedSpecialization);
     // Validate the determined specialization exists in our database
     const isValidSpecialization = specializations.some(
       (spec) => spec.name.toLowerCase() === determinedSpecialization

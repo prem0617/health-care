@@ -77,4 +77,54 @@ router.get("/search", async (req, res) => {
   }
 });
 
+router.post("/update", async (req, res) => {
+  try {
+    const {
+      id,
+      email,
+      password,
+      name,
+      specialization,
+      consultationFee,
+      chatFee,
+    } = req.body;
+
+    if (!id) {
+      return res.status(400).json({ message: "Doctor ID is required" });
+    }
+
+    const doctor = await Doctor.findById(id);
+
+    if (!doctor) {
+      return res.status(404).json({ message: "Doctor not found" });
+    }
+
+    if (email) doctor.email = email;
+    if (name) doctor.name = name;
+    if (specialization) doctor.specialization = specialization;
+
+    if (consultationFee?.amount)
+      doctor.consultationFee.amount = consultationFee.amount;
+    if (consultationFee?.currency)
+      doctor.consultationFee.currency = consultationFee.currency;
+
+    if (chatFee?.amount) doctor.chatFee.amount = chatFee.amount;
+    if (chatFee?.currency) doctor.chatFee.currency = chatFee.currency;
+
+    // If password is provided, hash it
+    if (password) {
+      doctor.password = await bcrypt.hash(password, 10);
+    }
+
+    await doctor.save();
+
+    res.status(200).json({ message: "Doctor updated successfully", doctor });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error while updating doctor" });
+  }
+});
+
+module.exports = router;
+
 module.exports = router;

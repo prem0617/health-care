@@ -6,6 +6,7 @@ const MedicalChat = require("../models/MedicalChat"); // Import the MedicalChat 
 router.post("/chat-history", async (req, res) => {
   try {
     const { specialization } = req.body;
+    console.log(specialization);
 
     if (!specialization) {
       return res.status(400).json({ message: "Specialization is required" });
@@ -14,19 +15,35 @@ router.post("/chat-history", async (req, res) => {
     // Fetch all chat history and populate user details
     const chatHistory = await MedicalChat.find().populate("userId");
 
-    // Filter chat history based on specialization inside questions array
+    // Filter questions across all chat documents based on specialization
+    const filteredData = [];
 
-    console.log(chatHistory[0].questions.map((chat) => chat.specialization));
+    chatHistory.forEach((chat) => {
+      const filteredQuestions = chat.questions.filter(
+        (question) => question.specialization === specialization.toLowerCase()
+      );
 
-    const filteredData = chatHistory[0].questions.filter(
-      (chat) => chat.specialization === specialization
-    );
+      // If there are matching questions, add them to the result with user info
+      if (filteredQuestions.length > 0) {
+        filteredData.push({
+          userId: chat.userId,
+          chatId: chat._id,
+          questions: filteredQuestions,
+        });
+      }
+    });
 
-    console.log(filteredData);
+    console.log({ filteredData });
 
     return res.status(200).json({
       message: "Filtered chat history fetched successfully",
       data: filteredData,
+      chatHistory,
+      totalChats: filteredData.length,
+      totalQuestions: filteredData.reduce(
+        (sum, chat) => sum + chat.questions.length,
+        0
+      ),
     });
   } catch (error) {
     console.error(error);
@@ -68,6 +85,7 @@ router.put("/verify-chat/:chatId/:questionId", async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 });
+
 router.put("/verify-chat/:questionId", async (req, res) => {
   try {
     const { questionId } = req.params;

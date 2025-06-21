@@ -211,34 +211,62 @@ router.get("/doctor/:doctorId", async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    let query = { doctorId };
+    let query = { doctorId, status: { $in: ["scheduled", "completed"] } }; // Only consider scheduled and completed appointments as booked
     const currentDate = new Date();
 
     const upcomingQuery = { ...query, date: { $gte: currentDate } };
     const previousQuery = { ...query, date: { $lt: currentDate } };
 
-    const [upcomingAppointments, previousAppointments, totalAppointments] =
-      await Promise.all([
-        Appointment.find(upcomingQuery)
-          .sort({ date: 1, "slot.startTime": 1 }) // Sort upcoming appointments in ascending order
-          .skip(skip)
-          .limit(limit)
-          .populate("patientId", "name email profile")
-          .lean(),
-        Appointment.find(previousQuery)
-          .sort({ date: -1, "slot.startTime": -1 }) // Sort previous appointments in descending order
-          .skip(skip)
-          .limit(limit)
-          .populate("patientId", "name email profile")
-          .lean(),
-        Appointment.countDocuments(query),
-      ]);
+    // Separate query for booked slots (only upcoming scheduled appointments)
+    const bookedSlotsQuery = {
+      doctorId,
+      status: "scheduled", // Only scheduled appointments block slots
+      date: { $gte: currentDate },
+    };
+
+    const [
+      upcomingAppointments,
+      previousAppointments,
+      totalAppointments,
+      bookedSlots,
+    ] = await Promise.all([
+      Appointment.find(upcomingQuery)
+        .sort({ date: 1, "slot.startTime": 1 }) // Sort upcoming appointments in ascending order
+        .skip(skip)
+        .limit(limit)
+        .populate("patientId", "name email profile")
+        .lean(),
+      Appointment.find(previousQuery)
+        .sort({ date: -1, "slot.startTime": -1 }) // Sort previous appointments in descending order
+        .skip(skip)
+        .limit(limit)
+        .populate("patientId", "name email profile")
+        .lean(),
+      Appointment.countDocuments(query),
+      // Get all booked slots without pagination for frontend blocking
+      Appointment.find(bookedSlotsQuery, {
+        date: 1,
+        "slot.startTime": 1,
+        "slot.endTime": 1,
+        _id: 0,
+      })
+        .sort({ date: 1, "slot.startTime": 1 })
+        .lean(),
+    ]);
+
+    // Format booked slots for easier frontend consumption
+    const formattedBookedSlots = bookedSlots.map((slot) => ({
+      date: slot.date.toISOString().split("T")[0], // Format as YYYY-MM-DD
+      startTime: slot.slot.startTime,
+      endTime: slot.slot.endTime,
+    }));
 
     res.json({
       message: "Appointments retrieved successfully",
       data: {
         upcomingAppointments,
         previousAppointments,
+        bookedSlots: formattedBookedSlots, // Add booked slots to response
         pagination: {
           currentPage: page,
           totalPages: Math.ceil(totalAppointments / limit),

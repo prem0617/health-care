@@ -31,7 +31,9 @@ router.get("/", async (req, res) => {
   try {
     const specializations = await Specialization.find();
     return res.json({ specializations });
-  } catch (error) {}
+  } catch (error) {
+    console.log(error);
+  }
 });
 
 module.exports = router;

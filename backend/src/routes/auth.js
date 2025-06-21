@@ -9,7 +9,7 @@ const authMiddleware = require("./middleware/authMiddleware");
 router.post("/register", async (req, res) => {
   try {
     const { email, password, profile, walletBalance } = req.body;
-    console.log("in register")
+    console.log("in register");
     // Check if user already exists
     const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
@@ -23,7 +23,6 @@ router.post("/register", async (req, res) => {
       profile: {
         firstName: profile.firstName,
         lastName: profile.lastName,
-        dateOfBirth: new Date(profile.dateOfBirth), // Convert string to Date
         phone: profile.mobile,
       },
       wallet: {
@@ -197,6 +196,7 @@ router.post("/doctor/register", async (req, res) => {
     res.status(201).json({
       message: "Registration successful",
       token,
+      doctor,
     });
   } catch (error) {
     console.error("Doctor registration error:", error);
@@ -234,6 +234,7 @@ router.post("/doctor/login", async (req, res) => {
     res.json({
       message: "Login successful",
       token,
+      doctor,
     });
   } catch (error) {
     console.error("Doctor login error:", error);
