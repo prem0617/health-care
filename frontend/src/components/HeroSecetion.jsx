@@ -10,7 +10,7 @@ import {
   Clock,
   Award,
 } from "lucide-react";
-// import {Spline}  from '@splinetool/react-spline';
+import Spline from "@splinetool/react-spline";
 import { Button } from "./ui/button";
 
 // Assuming you have this component in your project
@@ -40,7 +40,7 @@ const HeroSection = () => {
 
       {/* Spline 3D object */}
       <div className="absolute inset-0 z-10 opacity-30">
-        {/* <Spline scene="https://prod.spline.design/a0n4hVRRBOD5URVY/scene.splinecode" /> */}
+        <Spline scene="https://prod.spline.design/a0n4hVRRBOD5URVY/scene.splinecode" />
       </div>
 
       {/* Content Overlay */}

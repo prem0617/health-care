@@ -3,6 +3,7 @@ import { Send, X, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
+import { BACKEND_URL } from "@/config";
 
 export const Chatbot = ({
   isOpen,
@@ -46,7 +47,7 @@ export const Chatbot = ({
       if (!userId) return;
 
       const response = await axios.get(
-        `https://health-care-j1k8.onrender.com/api/chatbot/chats/${userId}`
+        `${BACKEND_URL}/api/chatbot/chats/${userId}`
       );
 
       if (Array.isArray(response.data.chatHistory)) {
@@ -107,10 +108,10 @@ export const Chatbot = ({
 
       try {
         const response = await axios.post(
-          `https://health-care-j1k8.onrender.com/api/chatbot/diagnose`,
+          `${BACKEND_URL}/api/chatbot/diagnose`,
           { question: inputValue, userId }
         );
-
+        console.log(response);
         const botMessage = response.data.analysis;
         setMessages([
           ...newMessages,

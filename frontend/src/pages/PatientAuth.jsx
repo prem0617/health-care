@@ -39,12 +39,6 @@ export default function PatientAuth() {
     setLoading(true);
     setError("");
 
-    if (!isLogin && !date) {
-      setError("Please select a date of birth");
-      setLoading(false);
-      return;
-    }
-
     try {
       const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
       const payload = isLogin
@@ -59,19 +53,14 @@ export default function PatientAuth() {
               firstName: formData.firstName,
               lastName: formData.lastName,
               mobile: formData.phone,
-              dateOfBirth: date?.toISOString(),
             },
           };
 
-      const response = await axios.post(
-        `${BACKEND_URL}${endpoint}`,
-        payload,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await axios.post(`${BACKEND_URL}${endpoint}`, payload, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
       const data = response.data;
       localStorage.setItem("token", data.token);
@@ -79,8 +68,7 @@ export default function PatientAuth() {
     } catch (err) {
       console.error("Registration error:", err);
       setError(
-        err.response?.data?.message ||
-          "An error occurred during registration"
+        err.response?.data?.message || "An error occurred during registration"
       );
     } finally {
       setLoading(false);
@@ -207,34 +195,6 @@ export default function PatientAuth() {
                     onChange={handleChange}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-black focus:border-black"
                   />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Date Of Birth
-                  </label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-[240px] justify-start text-left font-normal",
-                          !date && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon />
-                        {date ? format(date, "PPP") : <span>Pick a date</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={date}
-                        onSelect={setDate}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
                 </div>
               </>
             )}
