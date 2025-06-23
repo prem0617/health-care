@@ -39,7 +39,7 @@ const HeroSection = () => {
       </div>
 
       {/* Spline 3D object */}
-      <div className="absolute inset-0 z-10 opacity-30">
+      <div className="absolute inset-0 z-10 opacity-30 hidden sm:block">
         <Spline scene="https://prod.spline.design/a0n4hVRRBOD5URVY/scene.splinecode" />
       </div>
 

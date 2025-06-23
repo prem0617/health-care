@@ -3,10 +3,14 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 
-const app = express();
+const { app, server } = require("./socket");
 
 // Middleware
-app.use(cors());
+const corsOptions = {
+  origin: ["http://localhost:5173", "https://chikitsahub.vercel.app"],
+  credentials: true,
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // MongoDB connection with proper options
@@ -27,6 +31,9 @@ const chatbotRoutes = require("./routes/chatbot");
 const verifyChat = require("./routes/verifyChat");
 const prescriptionRoutes = require("./routes/prescription");
 const specializationRoutes = require("./routes/specializationRoutes");
+const messageRoutes = require("./routes/message");
+const userRoutes = require("./routes/user");
+
 // Use routes
 app.use("/api/auth", authRoutes);
 app.use("/api/appointments", appointmentRoutes);
@@ -36,6 +43,8 @@ app.use("/api/chatbot", chatbotRoutes);
 app.use("/api/verifyChat", verifyChat);
 app.use("/api/prescription", prescriptionRoutes);
 app.use("/api/specialization", specializationRoutes);
+app.use("/api/messages", messageRoutes);
+app.use("/api/user", userRoutes);
 
 // Basic error handling
 app.use((err, req, res, next) => {
@@ -47,4 +56,4 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 8000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

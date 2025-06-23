@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Menu, X } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -30,24 +31,30 @@ const Sidebar = () => {
             </button>
           )}
 
-          <a
-            href="/doctor/dashboard"
+          <Link
+            to="/doctor/dashboard"
             className="block py-3 px-6 text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-colors"
           >
             Dashboard
-          </a>
-          <a
-            href="/doctor/transactions"
+          </Link>
+          <Link
+            to="/doctor/transactions"
             className="block py-3 px-6 text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-colors"
           >
             Transaction
-          </a>
-          <a
-            href="/doctor/chatVerification"
+          </Link>
+          <Link
+            to="/doctor/chatVerification"
             className="block py-3 px-6 text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-colors"
           >
             Chat Verification
-          </a>
+          </Link>
+          <Link
+            to="/doctor/chat"
+            className="block py-3 px-6 text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+          >
+            Paitent Chat
+          </Link>
         </nav>
       </div>
     </>

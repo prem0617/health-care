@@ -11,7 +11,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import DoctorCard from "@/components/custom/DoctorCard";
-import { BACKEND_URL } from "@/config";
+// import { BACKEND_URL } from "@/config";
+
+const BACKEND_URL = "http://localhost:8000";
 
 const FindDoctors = () => {
   const [doctorData, setDoctorData] = useState([]);
@@ -45,9 +47,7 @@ const FindDoctors = () => {
 
   const fetchSpecialization = async () => {
     try {
-      const response = await axios.get(
-        `${BACKEND_URL}/api/specialization`
-      );
+      const response = await axios.get(`${BACKEND_URL}/api/specialization`);
       setSpecializations(response.data.specializations);
     } catch (error) {
       console.log(error);
@@ -57,9 +57,7 @@ const FindDoctors = () => {
   const fetchDoctor = async () => {
     try {
       const endpoint = "/api/doctor";
-      const response = await axios.get(
-        `${BACKEND_URL}${endpoint}`
-      );
+      const response = await axios.get(`${BACKEND_URL}${endpoint}`);
       setDoctorData(response.data.doctors);
       setFilteredDoctors(response.data.doctors);
     } catch (error) {

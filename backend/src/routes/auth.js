@@ -34,7 +34,12 @@ router.post("/register", async (req, res) => {
 
     // Generate JWT token
     const token = jwt.sign(
-      { userId: user._id, email: user.email, dob: user.dateOfBirth },
+      {
+        userId: user._id,
+        email: user.email,
+        dob: user.dateOfBirth,
+        role: "USER",
+      },
       process.env.JWT_SECRET,
       { expiresIn: "24h" }
     );
@@ -70,7 +75,12 @@ router.post("/login", async (req, res) => {
 
     // Generate JWT token
     const token = jwt.sign(
-      { userId: user._id, email: user.email, dob: user.dateOfBirth },
+      {
+        userId: user._id,
+        email: user.email,
+        dob: user.dateOfBirth,
+        role: "USER",
+      },
       process.env.JWT_SECRET,
       { expiresIn: "24h" }
     );
@@ -182,9 +192,10 @@ router.post("/doctor/register", async (req, res) => {
 
     const token = jwt.sign(
       {
-        doctorId: doctor._id,
+        userId: doctor._id,
         email: doctor.email,
         specialization: doctor.specialization,
+        role: "DOCTOR",
       },
       process.env.JWT_SECRET,
 
@@ -223,14 +234,15 @@ router.post("/doctor/login", async (req, res) => {
 
     const token = jwt.sign(
       {
-        doctorId: doctor._id,
+        userId: doctor._id,
         email: doctor.email,
         specialization: doctor.specialization,
+        role: "DOCTOR",
       },
       process.env.JWT_SECRET,
       { expiresIn: "24h" }
     );
-
+    console.log(token);
     res.json({
       message: "Login successful",
       token,

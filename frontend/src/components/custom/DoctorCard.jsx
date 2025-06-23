@@ -3,10 +3,11 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom"; // Changed from Next.js Link to React Router
 
 export default function DoctorCard({ doctor }) {
-  const { name, specialization, consultationFee } = doctor;
+  const { name, specialization, consultationFee, chatFee } = doctor;
   const [isHovered, setIsHovered] = useState(false);
 
   const consultAmount = consultationFee?.amount ?? 0;
+  const chatAmount = chatFee.amount ?? 0;
 
   return (
     <motion.div
@@ -32,7 +33,19 @@ export default function DoctorCard({ doctor }) {
           </div>
 
           <div className="space-y-4 mb-6">
-            <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg transition-colors">
+            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg transition-colors">
+              <div className="flex items-center gap-2">
+                <ConsultIcon />
+                <span className="text-gray-700">Chat Fee</span>
+              </div>
+              <span className="font-semibold text-gray-900">
+                ₹{chatAmount.toLocaleString()}
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-4 mb-6">
+            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg transition-colors">
               <div className="flex items-center gap-2">
                 <ConsultIcon />
                 <span className="text-gray-700">Consultation Fee</span>
@@ -48,9 +61,19 @@ export default function DoctorCard({ doctor }) {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg transition-all duration-300 hover:from-blue-600 hover:to-blue-700"
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg transition-all duration-300 text-sm hover:from-blue-600 hover:to-blue-700"
               >
                 Book Consultation
+              </motion.button>
+            </Link>
+
+            <Link to={`/chat/${doctor._id}`}>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg transition-all duration-300 text-sm hover:from-blue-600 hover:to-blue-700"
+              >
+                Chat With Doctor
               </motion.button>
             </Link>
           </div>
@@ -63,7 +86,8 @@ export default function DoctorCard({ doctor }) {
             className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center"
           >
             <p className="text-white text-center px-4">
-              Dr. {name} is available for consultations. Book now to secure your slot!
+              Dr. {name} is available for consultations. Book now to secure your
+              slot!
             </p>
           </motion.div>
         )}

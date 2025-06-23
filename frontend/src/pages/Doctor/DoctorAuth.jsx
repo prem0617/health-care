@@ -31,7 +31,9 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { BACKEND_URL } from "@/config";
+// import { BACKEND_URL } from "@/config";
+
+const BACKEND_URL = "http://localhost:8000";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -82,7 +84,7 @@ export default function DoctorAuth() {
     setError("");
     setSuccess("");
     setIsLoading(true);
-
+    console.log(`${BACKEND_URL}/api/auth/doctor/login`);
     try {
       const response = await fetch(`${BACKEND_URL}/api/auth/doctor/login`, {
         method: "POST",
@@ -95,7 +97,7 @@ export default function DoctorAuth() {
 
       localStorage.setItem("doctorToken", result.token);
       setSuccess("Login successful!");
-
+      console.log(result);
       localStorage.setItem("doctorToken", result.token);
       localStorage.setItem("doctorData", JSON.stringify(result.doctor));
       setTimeout(() => {

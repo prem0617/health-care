@@ -1,23 +1,11 @@
 import React, { useState } from "react";
-import {
-  Eye,
-  EyeOff,
-  ArrowRight,
-  UserCircle2,
-  CalendarIcon,
-} from "lucide-react";
+import { Eye, EyeOff, ArrowRight, UserCircle2 } from "lucide-react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
-import { Calendar } from "@/components/ui/calendar";
-import { BACKEND_URL } from "@/config";
+
+// import { BACKEND_URL } from "@/config";
+
+const BACKEND_URL = "http://localhost:8000";
 
 export default function PatientAuth() {
   const [date, setDate] = useState();

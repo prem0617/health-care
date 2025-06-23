@@ -10,8 +10,25 @@ import DoctorDashboard from "./pages/Doctor/DoctorDashboard";
 import DoctorAuth from "./pages/Doctor/DoctorAuth";
 import Transactions from "./pages/Doctor/DoctorTransaction";
 import ChatVerification from "./pages/Doctor/ChatVerification";
+import ChatPage from "./pages/ChatPage";
+import UsersChat from "./pages/Doctor/UsersChat";
+
+import { useSocket } from "./hooks/useSocket";
+import useUser from "./hooks/useUser";
 
 function App() {
+  // ✅ Call hooks directly in component body
+  const { user, loading, error } = useUser();
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  // Optional: Show error state
+  if (error) {
+    console.error("User error:", error);
+  }
+
   return (
     <>
       <Routes>
@@ -19,6 +36,7 @@ function App() {
         <Route path="/booking" element={<FindDoctors />} />
         <Route path="/auth" element={<PatientAuth />} />
         <Route path="/appointment/:id" element={<AppointmentPage />} />
+        <Route path="/chat/:id" element={<ChatPage />} />
         <Route path="/wallet" element={<WalletPage />} />
         <Route path="/appointments" element={<UpcomingAppointments />} />
 
@@ -27,6 +45,7 @@ function App() {
         <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
         <Route path="/doctor/transactions" element={<Transactions />} />
         <Route path="/doctor/chatVerification" element={<ChatVerification />} />
+        <Route path="doctor/chat" element={<UsersChat />} />
       </Routes>
     </>
   );

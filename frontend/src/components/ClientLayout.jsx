@@ -20,7 +20,10 @@ const LayoutContent = ({ children }) => {
     "/doctor/dashboard",
     "/doctor/transactions",
     "/doctor/chatVerification",
+    "/chat/*",
   ];
+
+  const shouldHideNavbar = location.pathname.startsWith("/chat/");
 
   useEffect(() => {
     const chatOpenParam = searchParams.get("isChatOpen");
@@ -54,7 +57,8 @@ const LayoutContent = ({ children }) => {
           transformOrigin: "center right",
         }}
       >
-        <Navbar />
+        {!shouldHideNavbar && <Navbar />}
+
         {children}
       </motion.div>
 

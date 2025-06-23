@@ -1,16 +1,29 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useLocation, useNavigate } from "react-router-dom"
-import { motion, AnimatePresence } from "framer-motion"
-import { Wallet, Calendar, Stethoscope, Menu, X, Heart, Shield } from 'lucide-react'
-import { Button } from "./ui/button"
-import { Avatar, AvatarFallback } from "./ui/avatar"
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover"
-import { Link } from "react-router-dom"
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Wallet,
+  Calendar,
+  Stethoscope,
+  Menu,
+  X,
+  Heart,
+  Shield,
+} from "lucide-react";
+import { Button } from "./ui/button";
+import { Avatar, AvatarFallback } from "./ui/avatar";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { Link } from "react-router-dom";
+import useUser from "@/hooks/useUser";
 
 const NavItem = ({ to, icon, children }) => (
-  <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }} className="relative group">
+  <motion.div
+    whileHover={{ y: -2 }}
+    whileTap={{ scale: 0.98 }}
+    className="relative group"
+  >
     <Link
       to={to}
       className="flex items-center space-x-3 px-5 py-3 rounded-xl hover:bg-white/20 backdrop-blur-sm transition-all duration-300 border border-transparent hover:border-white/20"
@@ -21,101 +34,117 @@ const NavItem = ({ to, icon, children }) => (
       >
         {icon}
       </motion.span>
-      <span className="text-slate-700 group-hover:text-blue-600 transition-colors font-medium">{children}</span>
+      <span className="text-slate-700 group-hover:text-blue-600 transition-colors font-medium">
+        {children}
+      </span>
     </Link>
   </motion.div>
-)
+);
 
 const getEmailFromToken = () => {
-  const token = localStorage.getItem("token") || localStorage.getItem("doctorToken")
+  const token =
+    localStorage.getItem("token") || localStorage.getItem("doctorToken");
   if (token) {
     try {
-      const decodedToken = JSON.parse(atob(token.split(".")[1]))
-      return decodedToken.email
+      const decodedToken = JSON.parse(atob(token.split(".")[1]));
+      return decodedToken.email;
     } catch {
-      return null
+      return null;
     }
   }
-  return null
-}
+  return null;
+};
 
 const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false)
-  const [hasScrolled, setHasScrolled] = useState(false)
-  const [userEmail, setUserEmail] = useState(null)
+  const { clearUser } = useUser();
+  const [isOpen, setIsOpen] = useState(false);
+  const [hasScrolled, setHasScrolled] = useState(false);
+  const [userEmail, setUserEmail] = useState(null);
 
-  const location = useLocation()
-  const navigate = useNavigate()
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  const pathname = location.pathname
-  const isAuthPage = pathname === "/auth" || pathname === "/doctor/auth"
+  const pathname = location.pathname;
+  const isAuthPage = pathname === "/auth" || pathname === "/doctor/auth";
 
-  const tokenType = localStorage.getItem("doctorToken") ? "doctor" : "token"
-  const isLoggedIn = Boolean(localStorage.getItem("token") || localStorage.getItem("doctorToken"))
+  const tokenType = localStorage.getItem("doctorToken") ? "doctor" : "token";
+  const isLoggedIn = Boolean(
+    localStorage.getItem("token") || localStorage.getItem("doctorToken")
+  );
 
   useEffect(() => {
-    setUserEmail(getEmailFromToken())
+    setUserEmail(getEmailFromToken());
 
     const handleStorageChange = () => {
-      setUserEmail(getEmailFromToken())
-    }
+      setUserEmail(getEmailFromToken());
+    };
 
-    window.addEventListener("storage", handleStorageChange)
+    window.addEventListener("storage", handleStorageChange);
 
     const intervalId = setInterval(() => {
-      const currentEmail = getEmailFromToken()
+      const currentEmail = getEmailFromToken();
       if (currentEmail !== userEmail) {
-        setUserEmail(currentEmail)
+        setUserEmail(currentEmail);
       }
-    }, 1000)
+    }, 1000);
 
     return () => {
-      window.removeEventListener("storage", handleStorageChange)
-      clearInterval(intervalId)
-    }
-  }, [userEmail])
+      window.removeEventListener("storage", handleStorageChange);
+      clearInterval(intervalId);
+    };
+  }, [userEmail]);
 
   useEffect(() => {
     const handleScroll = () => {
-      setHasScrolled(window.scrollY > 10)
-    }
+      setHasScrolled(window.scrollY > 10);
+    };
 
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const handleLogout = () => {
     if (tokenType === "doctor") {
-      localStorage.removeItem("doctorToken")
+      localStorage.removeItem("doctorToken");
     } else {
-      localStorage.removeItem("token")
+      localStorage.removeItem("token");
     }
-    setUserEmail(null)
-    setIsOpen(false)
-    navigate("/")
-  }
+    clearUser();
+    setUserEmail(null);
+    setIsOpen(false);
+    navigate("/");
+  };
 
   const getAvatarLetter = () => {
     if (userEmail) {
-      return userEmail.charAt(0).toUpperCase()
+      return userEmail.charAt(0).toUpperCase();
     }
-    return isLoggedIn ? "..." : "U"
-  }
+    return isLoggedIn ? "..." : "U";
+  };
 
-  if (isAuthPage) return null
+  if (isAuthPage) return null;
 
   return (
     <motion.nav
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        hasScrolled ? "bg-white/80 backdrop-blur-xl shadow-lg border-b border-white/20" : "bg-transparent"
+        hasScrolled
+          ? "bg-white/80 backdrop-blur-xl shadow-lg border-b border-white/20"
+          : "bg-transparent"
       }`}
     >
       <div className="container mx-auto px-6">
-        <div className={`flex items-center justify-between h-20 ${tokenType === "doctor" ? "pl-8" : ""}`}>
+        <div
+          className={`flex items-center justify-between h-20 ${
+            tokenType === "doctor" ? "pl-8" : ""
+          }`}
+        >
           {/* Logo Section */}
-          <Link to={tokenType === "doctor" ? "/doctor/dashboard" : "/"} className="flex items-center space-x-4 group">
+          <Link
+            to={tokenType === "doctor" ? "/doctor/dashboard" : "/"}
+            className="flex items-center space-x-4 group"
+          >
             <motion.div whileHover={{ scale: 1.05 }} className="relative">
               <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 via-purple-500 to-pink-400 flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
                 <motion.div
@@ -152,7 +181,9 @@ const Navbar = () => {
               >
                 ChikitsaHub
               </motion.span>
-              <span className="text-xs text-slate-500 font-medium tracking-wide">Healthcare Excellence</span>
+              <span className="text-xs text-slate-500 font-medium tracking-wide">
+                Healthcare Excellence
+              </span>
             </div>
           </Link>
 
@@ -165,16 +196,26 @@ const Navbar = () => {
                     <NavItem to="/wallet" icon={<Wallet className="h-5 w-5" />}>
                       Wallet
                     </NavItem>
-                    <NavItem to="/appointments" icon={<Calendar className="h-5 w-5" />}>
+                    <NavItem
+                      to="/appointments"
+                      icon={<Calendar className="h-5 w-5" />}
+                    >
                       Appointments
                     </NavItem>
-                    <NavItem to="/booking" icon={<Stethoscope className="h-5 w-5" />}>
+                    <NavItem
+                      to="/booking"
+                      icon={<Stethoscope className="h-5 w-5" />}
+                    >
                       Find Doctors
                     </NavItem>
                   </>
                 )}
 
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="ml-4">
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="ml-4"
+                >
                   <Popover>
                     <PopoverTrigger>
                       <Avatar className="h-11 w-11 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-400 text-white cursor-pointer ring-2 ring-blue-200 hover:ring-purple-300 transition-all duration-300 shadow-lg hover:shadow-xl">
@@ -184,7 +225,10 @@ const Navbar = () => {
                       </Avatar>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-2 bg-white/90 backdrop-blur-xl border border-white/20 shadow-xl rounded-xl">
-                      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      <motion.div
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
                         <Button
                           className="bg-gradient-to-r from-red-500 to-pink-500 text-white hover:from-red-600 hover:to-pink-600 shadow-lg hover:shadow-xl transition-all duration-300 rounded-lg px-6"
                           onClick={handleLogout}
@@ -198,7 +242,10 @@ const Navbar = () => {
               </>
             ) : (
               <Link to="/auth">
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
                   <Button
                     variant="outline"
                     className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-500 text-white border-none hover:from-blue-700 hover:via-purple-700 hover:to-pink-600 shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl px-8 py-2.5 font-medium"
@@ -269,9 +316,13 @@ const Navbar = () => {
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col">
-                      <span className="text-slate-700 font-medium">{userEmail}</span>
+                      <span className="text-slate-700 font-medium">
+                        {userEmail}
+                      </span>
                       <span className="text-xs text-slate-500">
-                        {tokenType === "doctor" ? "Doctor Account" : "Patient Account"}
+                        {tokenType === "doctor"
+                          ? "Doctor Account"
+                          : "Patient Account"}
                       </span>
                     </div>
                   </motion.div>
@@ -283,7 +334,10 @@ const Navbar = () => {
                         animate={{ x: 0, opacity: 1 }}
                         transition={{ delay: 0.2 }}
                       >
-                        <NavItem to="/wallet" icon={<Wallet className="h-5 w-5" />}>
+                        <NavItem
+                          to="/wallet"
+                          icon={<Wallet className="h-5 w-5" />}
+                        >
                           Wallet
                         </NavItem>
                       </motion.div>
@@ -292,7 +346,10 @@ const Navbar = () => {
                         animate={{ x: 0, opacity: 1 }}
                         transition={{ delay: 0.3 }}
                       >
-                        <NavItem to="/appointments" icon={<Calendar className="h-5 w-5" />}>
+                        <NavItem
+                          to="/appointments"
+                          icon={<Calendar className="h-5 w-5" />}
+                        >
                           Appointments
                         </NavItem>
                       </motion.div>
@@ -301,7 +358,10 @@ const Navbar = () => {
                         animate={{ x: 0, opacity: 1 }}
                         transition={{ delay: 0.4 }}
                       >
-                        <NavItem to="/booking" icon={<Stethoscope className="h-5 w-5" />}>
+                        <NavItem
+                          to="/booking"
+                          icon={<Stethoscope className="h-5 w-5" />}
+                        >
                           Find Doctors
                         </NavItem>
                       </motion.div>
@@ -322,7 +382,11 @@ const Navbar = () => {
                   </motion.div>
                 </>
               ) : (
-                <motion.div initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.1 }}>
+                <motion.div
+                  initial={{ x: -20, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: 0.1 }}
+                >
                   <Link to="/auth" className="block">
                     <Button
                       variant="outline"
@@ -339,7 +403,7 @@ const Navbar = () => {
       </AnimatePresence>
       <div className="h-[0.1px] shadow-slate-300  shadow"></div>
     </motion.nav>
-  )
-}
+  );
+};
 
-export default Navbar
+export default Navbar;

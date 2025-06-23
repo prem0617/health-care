@@ -1,15 +1,20 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { jwtDecode } from "jwt-decode"
-import axios from "axios"
-import { motion } from "framer-motion"
+import { useState, useEffect } from "react";
+import { jwtDecode } from "jwt-decode";
+import axios from "axios";
+import { motion } from "framer-motion";
 
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Calendar,
   User,
@@ -25,13 +30,16 @@ import {
   TrendingUp,
   Users,
   Activity,
-} from "lucide-react"
+} from "lucide-react";
 
-import { BACKEND_URL } from "@/config"
-import DoctorLayout from "./DoctorLayout"
+import { BACKEND_URL } from "@/config";
+import DoctorLayout from "./DoctorLayout";
 
 const StatsCard = ({ icon, title, value, trend, color = "blue" }) => (
-  <motion.div whileHover={{ scale: 1.02, y: -2 }} transition={{ duration: 0.2 }}>
+  <motion.div
+    whileHover={{ scale: 1.02, y: -2 }}
+    transition={{ duration: 0.2 }}
+  >
     <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm hover:shadow-xl transition-all duration-300">
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
@@ -56,10 +64,14 @@ const StatsCard = ({ icon, title, value, trend, color = "blue" }) => (
       </CardContent>
     </Card>
   </motion.div>
-)
+);
 
 const EmptyState = ({ message }) => (
-  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="col-span-full">
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    className="col-span-full"
+  >
     <Card className="border-0 shadow-none bg-gradient-to-br from-slate-50 to-slate-100">
       <CardContent className="p-8 sm:p-12">
         <div className="flex flex-col items-center justify-center text-center">
@@ -71,20 +83,28 @@ const EmptyState = ({ message }) => (
           >
             <CalendarX className="w-10 h-10 text-blue-500" />
           </motion.div>
-          <h3 className="text-xl font-semibold text-gray-800 mb-2">{message}</h3>
-          <p className="text-gray-500 max-w-sm">No appointments found at this time. Your schedule is clear for now.</p>
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">
+            {message}
+          </h3>
+          <p className="text-gray-500 max-w-sm">
+            No appointments found at this time. Your schedule is clear for now.
+          </p>
         </div>
       </CardContent>
     </Card>
   </motion.div>
-)
+);
 
 const LoadingState = () => (
   <div className="col-span-full flex justify-center items-center p-12">
     <div className="flex flex-col items-center">
       <motion.div
         animate={{ rotate: 360 }}
-        transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+        transition={{
+          duration: 1,
+          repeat: Number.POSITIVE_INFINITY,
+          ease: "linear",
+        }}
         className="w-16 h-16 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mb-4"
       >
         <Loader2 className="w-8 h-8 text-blue-600" />
@@ -92,50 +112,54 @@ const LoadingState = () => (
       <p className="text-gray-600 font-medium">Loading appointments...</p>
     </div>
   </div>
-)
+);
 
 const DoctorDashboard = () => {
-  const [isLoading, setIsLoading] = useState(true)
-  const [upcomingAppointments, setUpcomingAppointments] = useState([])
-  const [previousAppointments, setPreviousAppointments] = useState([])
-  const [selectedAppointment, setSelectedAppointment] = useState(null)
-  const [zoomLink, setZoomLink] = useState("")
-  const [diagnosis, setDiagnosis] = useState("")
-  const [medications, setMedications] = useState([])
-  const [doctorName, setDoctorName] = useState("")
-  const [isZoomDialogOpen, setIsZoomDialogOpen] = useState(false)
-  const [isPrescriptionDialogOpen, setIsPrescriptionDialogOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(true);
+  const [upcomingAppointments, setUpcomingAppointments] = useState([]);
+  const [previousAppointments, setPreviousAppointments] = useState([]);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [zoomLink, setZoomLink] = useState("");
+  const [diagnosis, setDiagnosis] = useState("");
+  const [medications, setMedications] = useState([]);
+  const [doctorName, setDoctorName] = useState("");
+  const [isZoomDialogOpen, setIsZoomDialogOpen] = useState(false);
+  const [isPrescriptionDialogOpen, setIsPrescriptionDialogOpen] =
+    useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("doctorToken")
+    const token = localStorage.getItem("doctorToken");
     if (token) {
-      console.log(token)
-      const decoded = jwtDecode(token)
-      setDoctorName(decoded.name || "Doctor")
-      fetchAppointments(decoded.doctorId)
+      console.log(token);
+      const decoded = jwtDecode(token);
+      setDoctorName(decoded.name || "Doctor");
+      fetchAppointments(decoded.userId);
     }
-  }, [])
+  }, []);
 
   const fetchAppointments = async (doctorId) => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const token = localStorage.getItem("doctorToken")
-      if (!token) return
-      const res = await axios.get(`${BACKEND_URL}/api/appointments/doctor/${doctorId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      console.log(res)
-      const { upcomingAppointments, previousAppointments } = res.data.data
-      setUpcomingAppointments(upcomingAppointments || [])
-      setPreviousAppointments(previousAppointments || [])
+      const token = localStorage.getItem("doctorToken");
+      if (!token) return;
+      const res = await axios.get(
+        `${BACKEND_URL}/api/appointments/doctor/${doctorId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      console.log(res);
+      const { upcomingAppointments, previousAppointments } = res.data.data;
+      setUpcomingAppointments(upcomingAppointments || []);
+      setPreviousAppointments(previousAppointments || []);
     } catch (err) {
-      console.error(err)
-      setUpcomingAppointments([])
-      setPreviousAppointments([])
+      console.error(err);
+      setUpcomingAppointments([]);
+      setPreviousAppointments([]);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleString("en-US", {
@@ -145,60 +169,66 @@ const DoctorDashboard = () => {
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-    })
-  }
+    });
+  };
 
   const openZoomDialog = (app) => {
-    setSelectedAppointment(app)
-    setZoomLink(app.zoomLink || "")
-    setIsZoomDialogOpen(true)
-  }
+    setSelectedAppointment(app);
+    setZoomLink(app.zoomLink || "");
+    setIsZoomDialogOpen(true);
+  };
 
   const openPrescriptionDialog = (app) => {
-    setSelectedAppointment(app)
-    setDiagnosis("")
-    setMedications([])
-    setIsPrescriptionDialogOpen(true)
-  }
+    setSelectedAppointment(app);
+    setDiagnosis("");
+    setMedications([]);
+    setIsPrescriptionDialogOpen(true);
+  };
 
   const handleAddOrUpdateZoomLink = async () => {
-    if (!selectedAppointment) return
+    if (!selectedAppointment) return;
     try {
-      const token = localStorage.getItem("doctorToken")
+      const token = localStorage.getItem("doctorToken");
       await axios.post(
         `${BACKEND_URL}/api/appointments/${selectedAppointment._id}/zoom-link`,
         { zoomLink },
-        { headers: { Authorization: `Bearer ${token}` } },
-      )
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       setUpcomingAppointments((prev) =>
-        prev.map((app) => (app._id === selectedAppointment._id ? { ...app, zoomLink } : app)),
-      )
-      setIsZoomDialogOpen(false)
-      setZoomLink("")
+        prev.map((app) =>
+          app._id === selectedAppointment._id ? { ...app, zoomLink } : app
+        )
+      );
+      setIsZoomDialogOpen(false);
+      setZoomLink("");
     } catch (err) {
-      console.error(err)
+      console.error(err);
     }
-  }
+  };
 
   const handleCreatePrescription = async () => {
-    if (!selectedAppointment) return
+    if (!selectedAppointment) return;
     try {
-      const token = localStorage.getItem("doctorToken")
+      const token = localStorage.getItem("doctorToken");
       await axios.post(
         `${BACKEND_URL}/api/prescription`,
         { diagnosis, medications, appointmentId: selectedAppointment._id },
-        { headers: { Authorization: `Bearer ${token}` } },
-      )
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       setPreviousAppointments((prev) =>
-        prev.map((app) => (app._id === selectedAppointment._id ? { ...app, hasPrescription: true } : app)),
-      )
-      setIsPrescriptionDialogOpen(false)
-      setDiagnosis("")
-      setMedications([])
+        prev.map((app) =>
+          app._id === selectedAppointment._id
+            ? { ...app, hasPrescription: true }
+            : app
+        )
+      );
+      setIsPrescriptionDialogOpen(false);
+      setDiagnosis("");
+      setMedications([]);
     } catch (err) {
-      console.error(err)
+      console.error(err);
     }
-  }
+  };
 
   const renderAppointmentCard = (app, isUpcoming) => (
     <motion.div
@@ -223,11 +253,14 @@ const DoctorDashboard = () => {
                 </motion.div>
                 <div>
                   <h3 className="font-semibold text-gray-900 text-lg">
-                    {app.patientId.profile.firstName} {app.patientId.profile.lastName}
+                    {app.patientId.profile.firstName}{" "}
+                    {app.patientId.profile.lastName}
                   </h3>
                   <div className="flex items-center space-x-2 mt-1">
                     <Calendar className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-600">{formatDate(app.date)}</span>
+                    <span className="text-sm text-gray-600">
+                      {formatDate(app.date)}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -279,7 +312,9 @@ const DoctorDashboard = () => {
               {!isUpcoming && app.prescriptionId && (
                 <div className="flex items-center justify-center py-2 px-4 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200">
                   <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
-                  <span className="text-green-700 font-medium text-sm">Prescription Completed</span>
+                  <span className="text-green-700 font-medium text-sm">
+                    Prescription Completed
+                  </span>
                 </div>
               )}
             </div>
@@ -287,18 +322,25 @@ const DoctorDashboard = () => {
         </CardContent>
       </Card>
     </motion.div>
-  )
+  );
 
-  const totalAppointments = upcomingAppointments.length + previousAppointments.length
-  const completedAppointments = previousAppointments.length
-  const prescriptionsGiven = previousAppointments.filter((app) => app.prescriptionId).length
+  const totalAppointments =
+    upcomingAppointments.length + previousAppointments.length;
+  const completedAppointments = previousAppointments.length;
+  const prescriptionsGiven = previousAppointments.filter(
+    (app) => app.prescriptionId
+  ).length;
 
   return (
     <DoctorLayout>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
         <div className="p-6 lg:p-8">
           {/* Header Section */}
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8"
+          >
             <div className="flex items-center space-x-4 mb-6">
               <motion.div
                 whileHover={{ scale: 1.05 }}
@@ -310,7 +352,9 @@ const DoctorDashboard = () => {
                 <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
                   Welcome back, Dr. {doctorName}
                 </h1>
-                <p className="text-gray-600 mt-1">Manage your appointments and patient care</p>
+                <p className="text-gray-600 mt-1">
+                  Manage your appointments and patient care
+                </p>
               </div>
             </div>
           </motion.div>
@@ -353,7 +397,9 @@ const DoctorDashboard = () => {
               <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
                 <Clock className="w-5 h-5 text-white" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-800">Upcoming Appointments</h2>
+              <h2 className="text-2xl font-bold text-gray-800">
+                Upcoming Appointments
+              </h2>
               {!isLoading && upcomingAppointments.length > 0 && (
                 <span className="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm font-medium">
                   {upcomingAppointments.length} scheduled
@@ -364,7 +410,9 @@ const DoctorDashboard = () => {
               {isLoading ? (
                 <LoadingState />
               ) : upcomingAppointments.length > 0 ? (
-                upcomingAppointments.map((app) => renderAppointmentCard(app, true))
+                upcomingAppointments.map((app) =>
+                  renderAppointmentCard(app, true)
+                )
               ) : (
                 <EmptyState message="No Upcoming Appointments" />
               )}
@@ -372,12 +420,18 @@ const DoctorDashboard = () => {
           </motion.div>
 
           {/* Previous Appointments Section */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
             <div className="flex items-center space-x-3 mb-6">
               <div className="w-8 h-8 bg-gradient-to-br from-gray-500 to-gray-600 rounded-lg flex items-center justify-center">
                 <Calendar className="w-5 h-5 text-white" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-800">Previous Appointments</h2>
+              <h2 className="text-2xl font-bold text-gray-800">
+                Previous Appointments
+              </h2>
               {!isLoading && previousAppointments.length > 0 && (
                 <span className="inline-flex items-center px-3 py-1 rounded-full bg-gray-100 text-gray-800 text-sm font-medium">
                   {previousAppointments.length} completed
@@ -388,7 +442,9 @@ const DoctorDashboard = () => {
               {isLoading ? (
                 <LoadingState />
               ) : previousAppointments.length > 0 ? (
-                previousAppointments.map((app) => renderAppointmentCard(app, false))
+                previousAppointments.map((app) =>
+                  renderAppointmentCard(app, false)
+                )
               ) : (
                 <EmptyState message="No Previous Appointments" />
               )}
@@ -402,7 +458,11 @@ const DoctorDashboard = () => {
             <DialogHeader>
               <DialogTitle className="flex items-center space-x-2">
                 <Video className="w-5 h-5 text-blue-600" />
-                <span>{selectedAppointment?.zoomLink ? "Update Meeting Link" : "Add Meeting Link"}</span>
+                <span>
+                  {selectedAppointment?.zoomLink
+                    ? "Update Meeting Link"
+                    : "Add Meeting Link"}
+                </span>
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4 pt-4">
@@ -419,7 +479,11 @@ const DoctorDashboard = () => {
                 >
                   Save Link
                 </Button>
-                <Button variant="outline" onClick={() => setIsZoomDialogOpen(false)} className="flex-1">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsZoomDialogOpen(false)}
+                  className="flex-1"
+                >
                   Cancel
                 </Button>
               </div>
@@ -428,7 +492,10 @@ const DoctorDashboard = () => {
         </Dialog>
 
         {/* Enhanced Prescription Dialog */}
-        <Dialog open={isPrescriptionDialogOpen} onOpenChange={setIsPrescriptionDialogOpen}>
+        <Dialog
+          open={isPrescriptionDialogOpen}
+          onOpenChange={setIsPrescriptionDialogOpen}
+        >
           <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center space-x-2">
@@ -438,7 +505,9 @@ const DoctorDashboard = () => {
             </DialogHeader>
             <div className="space-y-6 pt-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Diagnosis</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Diagnosis
+                </label>
                 <Textarea
                   placeholder="Enter patient diagnosis..."
                   value={diagnosis}
@@ -450,13 +519,18 @@ const DoctorDashboard = () => {
 
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <label className="block text-sm font-medium text-gray-700">Medications</label>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Medications
+                  </label>
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     onClick={() =>
-                      setMedications([...medications, { name: "", dosage: "", frequency: "", duration: "" }])
+                      setMedications([
+                        ...medications,
+                        { name: "", dosage: "", frequency: "", duration: "" },
+                      ])
                     }
                     className="bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200 text-purple-700 hover:from-purple-100 hover:to-pink-100"
                   >
@@ -467,16 +541,19 @@ const DoctorDashboard = () => {
 
                 <div className="space-y-4">
                   {medications.map((med, idx) => (
-                    <Card key={idx} className="p-4 bg-gradient-to-r from-gray-50 to-slate-50 border border-gray-200">
+                    <Card
+                      key={idx}
+                      className="p-4 bg-gradient-to-r from-gray-50 to-slate-50 border border-gray-200"
+                    >
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <Input
                           placeholder="Medicine name"
                           value={med.name}
                           onChange={(e) =>
                             setMedications((meds) => {
-                              const copy = [...meds]
-                              copy[idx].name = e.target.value
-                              return copy
+                              const copy = [...meds];
+                              copy[idx].name = e.target.value;
+                              return copy;
                             })
                           }
                           className="focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
@@ -486,9 +563,9 @@ const DoctorDashboard = () => {
                           value={med.dosage}
                           onChange={(e) =>
                             setMedications((meds) => {
-                              const copy = [...meds]
-                              copy[idx].dosage = e.target.value
-                              return copy
+                              const copy = [...meds];
+                              copy[idx].dosage = e.target.value;
+                              return copy;
                             })
                           }
                           className="focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
@@ -498,9 +575,9 @@ const DoctorDashboard = () => {
                           value={med.frequency}
                           onChange={(e) =>
                             setMedications((meds) => {
-                              const copy = [...meds]
-                              copy[idx].frequency = e.target.value
-                              return copy
+                              const copy = [...meds];
+                              copy[idx].frequency = e.target.value;
+                              return copy;
                             })
                           }
                           className="focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
@@ -510,9 +587,9 @@ const DoctorDashboard = () => {
                           value={med.duration}
                           onChange={(e) =>
                             setMedications((meds) => {
-                              const copy = [...meds]
-                              copy[idx].duration = e.target.value
-                              return copy
+                              const copy = [...meds];
+                              copy[idx].duration = e.target.value;
+                              return copy;
                             })
                           }
                           className="focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
@@ -530,7 +607,11 @@ const DoctorDashboard = () => {
                 >
                   Send Prescription
                 </Button>
-                <Button variant="outline" onClick={() => setIsPrescriptionDialogOpen(false)} className="flex-1">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsPrescriptionDialogOpen(false)}
+                  className="flex-1"
+                >
                   Cancel
                 </Button>
               </div>
@@ -539,7 +620,7 @@ const DoctorDashboard = () => {
         </Dialog>
       </div>
     </DoctorLayout>
-  )
-}
+  );
+};
 
-export default DoctorDashboard
+export default DoctorDashboard;
