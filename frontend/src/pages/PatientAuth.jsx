@@ -3,9 +3,7 @@ import { Eye, EyeOff, ArrowRight, UserCircle2 } from "lucide-react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-// import { BACKEND_URL } from "@/config";
-
-const BACKEND_URL = "http://localhost:8000";
+import { BACKEND_URL } from "@/config";
 
 export default function PatientAuth() {
   const [date, setDate] = useState();

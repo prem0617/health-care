@@ -31,9 +31,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-// import { BACKEND_URL } from "@/config";
-
-const BACKEND_URL = "http://localhost:8000";
+import { BACKEND_URL } from "@/config";
 
 const loginSchema = z.object({
   email: z.string().email(),

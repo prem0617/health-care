@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
+import { BACKEND_URL } from "@/config";
 
 function useUser() {
   const [user, setUser] = useState(null);
@@ -19,7 +20,7 @@ function useUser() {
 
     try {
       setLoading(true);
-      const response = await axios.get("http://localhost:8000/api/user", {
+      const response = await axios.get(`${BACKEND_URL}/api/user`, {
         headers: {
           Authorization: `Bearer ${usedToken}`,
         },

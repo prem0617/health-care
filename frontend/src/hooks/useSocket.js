@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import useUser from "./useUser";
+import { BACKEND_URL } from "@/config";
 
 export const useSocket = () => {
   const socketRef = useRef();
@@ -17,7 +18,7 @@ export const useSocket = () => {
       return;
     }
     console.log(user.userId);
-    const s = io("http://localhost:8000", {
+    const s = io(BACKEND_URL, {
       withCredentials: true,
       auth: {
         userId: user.userId, // Use userId from your user object

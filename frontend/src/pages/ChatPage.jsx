@@ -4,6 +4,7 @@ import { jwtDecode } from "jwt-decode";
 import { useParams, useNavigate } from "react-router-dom";
 import { Send, ArrowLeft, User } from "lucide-react";
 import { useSocket } from "@/hooks/useSocket";
+import { BACKEND_URL } from "@/config";
 
 const ChatPage = () => {
   const { id: receiverId } = useParams();
@@ -45,9 +46,7 @@ const ChatPage = () => {
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const res = await axios.get(
-          `http://localhost:8000/api/messages/${userId}/${doctorId}`
-        );
+        const res = await axios.get(`${BACKEND_URL}/${userId}/${doctorId}`);
         setMessages(res.data);
         console.log(res);
       } catch (err) {
@@ -72,7 +71,7 @@ const ChatPage = () => {
     });
     try {
       const res = await axios.post(
-        "http://localhost:8000/api/messages",
+        `${BACKEND_URL}/api/messages`,
         {
           user: userId,
           doctor: doctorId,
@@ -113,12 +112,10 @@ const ChatPage = () => {
       if (!receiverId || !senderModel) return;
       setLoading(true);
       const model = senderModel === "Doctor" ? "User" : "Doctor";
-      console.log(
-        `http://localhost:8000/api/users/${model.toLowerCase()}s/${receiverId}`
-      );
+
       try {
         const res = await axios.get(
-          `http://localhost:8000/api/user/${model.toLowerCase()}s/${receiverId}`,
+          `${BACKEND_URL}/api/user/${model.toLowerCase()}s/${receiverId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

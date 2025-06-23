@@ -11,9 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import DoctorCard from "@/components/custom/DoctorCard";
-// import { BACKEND_URL } from "@/config";
-
-const BACKEND_URL = "http://localhost:8000";
+import { BACKEND_URL } from "@/config";
 
 const FindDoctors = () => {
   const [doctorData, setDoctorData] = useState([]);

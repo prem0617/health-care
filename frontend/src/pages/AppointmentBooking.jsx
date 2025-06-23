@@ -12,7 +12,7 @@ import {
   MapPin,
   Star,
 } from "lucide-react";
-// import { BACKEND_URL } from "@/config";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
