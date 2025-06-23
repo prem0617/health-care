@@ -130,7 +130,6 @@ const DoctorDashboard = () => {
   useEffect(() => {
     const token = localStorage.getItem("doctorToken");
     if (token) {
-      console.log(token);
       const decoded = jwtDecode(token);
       setDoctorName(decoded.name || "Doctor");
       fetchAppointments(decoded.userId);

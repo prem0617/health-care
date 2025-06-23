@@ -46,7 +46,9 @@ const ChatPage = () => {
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const res = await axios.get(`${BACKEND_URL}/${userId}/${doctorId}`);
+        const res = await axios.get(
+          `${BACKEND_URL}/api/messages/${userId}/${doctorId}`
+        );
         setMessages(res.data);
         console.log(res);
       } catch (err) {
@@ -147,7 +149,7 @@ const ChatPage = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
       <div className="bg-white shadow-sm border-b sticky top-0 z-10 flex-shrink-0">
-        <div className="max-w-6xl mx-auto px-4 py-4">
+        <div className="max-w-screen-lg mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <button
@@ -161,7 +163,7 @@ const ChatPage = () => {
                   <User className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">
+                  <h3 className="font-semibold text-gray-900 text-sm sm:text-base">
                     {receiverDetails?.name ||
                       receiverDetails?.profile?.firstName +
                         " " +
@@ -175,11 +177,11 @@ const ChatPage = () => {
         </div>
       </div>
 
-      {/* Chat Container - Now takes remaining height */}
-      <div className="flex-1 w-6xl mx-auto px-4 py-6 flex flex-col">
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col flex-1">
-          {/* Messages Area - Takes all available space */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
+      {/* Chat Container */}
+      <div className="flex-1 w-full max-w-screen-lg mx-auto px-2 sm:px-4 py-4 sm:py-6 flex flex-col">
+        <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg overflow-hidden flex flex-col flex-1">
+          {/* Messages Area */}
+          <div className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-4 bg-gray-50">
             {messages && messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-gray-500">
                 <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mb-4">
@@ -198,13 +200,15 @@ const ChatPage = () => {
                     }`}
                   >
                     <div
-                      className={`max-w-md lg:max-w-2xl px-4 py-3 rounded-2xl ${
+                      className={`max-w-[85%] sm:max-w-[75%] md:max-w-[60%] px-4 py-3 rounded-2xl ${
                         msg.sender === senderId
                           ? "bg-blue-600 text-white rounded-br-md"
                           : "bg-white border border-gray-200 text-gray-900 rounded-bl-md shadow-sm"
                       }`}
                     >
-                      <p className="text-sm leading-relaxed">{msg.content}</p>
+                      <p className="text-sm leading-relaxed break-words">
+                        {msg.content}
+                      </p>
                       <p
                         className={`text-xs mt-2 ${
                           msg.sender === senderId
@@ -222,18 +226,17 @@ const ChatPage = () => {
                     </div>
                   </div>
                 ))}
-                {/* Invisible element to scroll to */}
                 <div ref={messagesEndRef} />
               </>
             )}
           </div>
 
-          {/* Input Area - Fixed at bottom */}
-          <div className="border-t bg-white p-4 flex-shrink-0">
-            <div className="flex items-end space-x-3">
+          {/* Input Area */}
+          <div className="border-t bg-white px-2 sm:px-4 py-3 flex-shrink-0">
+            <div className="flex items-end space-x-2 sm:space-x-3">
               <div className="flex-1 relative">
                 <textarea
-                  className="w-full resize-none border border-gray-300 rounded-xl px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 max-h-32"
+                  className="w-full resize-none border border-gray-300 rounded-xl px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 max-h-32 text-sm sm:text-base"
                   placeholder="Type your message..."
                   value={content}
                   onChange={(e) => setContent(e.target.value)}

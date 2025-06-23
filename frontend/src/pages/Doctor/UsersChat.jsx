@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { MessageCircle, User, Search, Clock, ArrowRight } from "lucide-react";
+import { BACKEND_URL } from "@/config";
 
 const UsersChat = () => {
   const [doctor, setDoctor] = useState(null);
@@ -19,14 +20,14 @@ const UsersChat = () => {
 
     const decodedToken = jwtDecode(token);
     setDoctor(decodedToken);
-    console.log(decodedToken);
+    // console.log(decodedToken);
 
     const fetchUsers = async () => {
       try {
         const res = await axios.get(
-          `http://localhost:8000/api/messages/users/${decodedToken.userId}`
+          `${BACKEND_URL}/api/messages/users/${decodedToken.userId}`
         );
-        console.log(res);
+        // console.log(res);
         setUsers(res.data);
       } catch (error) {
         console.error("Error fetching users:", error);

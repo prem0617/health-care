@@ -39,7 +39,7 @@ const Transactions = () => {
     const token = localStorage.getItem("doctorToken");
     if (token) {
       const decodedToken = jwtDecode(token);
-      fetchTransactions(decodedToken.doctorId);
+      fetchTransactions(decodedToken.userId);
     }
   }, []);
 
